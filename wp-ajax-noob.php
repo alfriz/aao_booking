@@ -46,14 +46,14 @@ function my_wp_ajax_noob_aao_booking_shortcode_callbacks(){
 	global $wpdb;
 	
 
-	wp_enqueue_script( 'my-wp-ajax-noob-john-cena-script' );
+	wp_enqueue_script( 'my-wp-ajax-noob-aao-booking-script' );
 
 	/* Output empty div. */
 	
 	if(!isset($_SESSION['sessionId'])) {
 		$_SESSION['sessionId'] = time();
 	} else {
-    $value = '';
+   		 $value = '';
 }
 	
 	return '<div id="containerpage">'. get_bookingdata(). '</div>';
@@ -77,8 +77,8 @@ function my_wp_ajax_noob_scripts(){
 	/* JS + Localize */
 	
 	
-	wp_register_script( 'my-wp-ajax-noob-john-cena-script', $url . "assets/script.js", array( 'jquery', 'jquery-ui-datepicker' ), '1.0.3', true );
-	wp_localize_script( 'my-wp-ajax-noob-john-cena-script', 'aao_booking_ajax_url', admin_url( 'admin-ajax.php' ) );
+	wp_register_script( 'my-wp-ajax-noob-aao-booking-script', $url . "assets/script.js", array( 'jquery', 'jquery-ui-datepicker' ), '1.0.3', true );
+	wp_localize_script( 'my-wp-ajax-noob-aao-booking-script', 'aao_booking_ajax_url', admin_url( 'admin-ajax.php' ) );
 }
 
 
@@ -109,8 +109,8 @@ function my_wp_ajax_noob_aao_booking_ajax_callback(){
 
 		if($isavanti == 1) {
 			$index = $index + 1;
-			if ( $index > 3)
-				$index = 3;
+			if ( $index > 4)
+				$index = 4;
 		} else {
 			$index = $index - 1;
 			if ( $index < 0)
@@ -126,7 +126,8 @@ function my_wp_ajax_noob_aao_booking_ajax_callback(){
 		$results = get_services($params['area']);
 	} elseif($index == 3){
 		$results = get_user_data();
-
+	} elseif($index == 4){
+		$results = get_summary();
 	}
 		//$results = "<h2> Sono data: ".$greeting."</h2>"; // Return String 
 	die($results); 
@@ -155,9 +156,13 @@ function saveData($index, $inputdata)
 
 function get_bookingdata()
 {
-	$row = getDataFromSession();
-	
 	$session = $_SESSION['sessionId'];
+
+	if ( $session < time() - (15 * 60))
+		$_SESSION['sessionId'] = time();
+
+	$row = getDataFromSession();
+
 	
 	$date = '';
 	if ($row != null)
@@ -170,8 +175,8 @@ function get_bookingdata()
 		<form id="dataora">
 		<input id="index" type="hidden" value="0"/>
 		<input id="date" name="date" class="dateclass" value="'.$date.'"/>
-		</form>
-		<button onclick="avanticlick()">avanti</button>';
+		</form>'
+		 . getNavButtons(false, true);
 
 }
 
@@ -185,18 +190,15 @@ function updateDateTime($date)
 		$dates = date_create_from_format('d-m-Y', $date);
 		
 		$row = getDataFromSession();
-		
-		if ($row!= null && $row->day != date_format($dates, 'Y-m-d'))
-		{
-	
-			$wpdb->query( $wpdb->prepare(  
+			
+		$wpdb->query( $wpdb->prepare(  
 				'INSERT INTO wp_aao_bkg_temp_bookings (session, day) 
 				VALUES('.$session.', "'.date_format($dates, 'Y-m-d').'") ON DUPLICATE KEY UPDATE    
 				 day="'. date_format($dates, 'Y-m-d') .'"
 				 '));
+		if ($row!= null && $row->day != date_format($dates, 'Y-m-d'))		 
 			$wpdb->query(  'UPDATE wp_aao_bkg_temp_bookings SET areaId=null, persons=null, serviceId=null WHERE session='. $session );
 
-		}
 	}
 }
 
@@ -219,9 +221,7 @@ function updateService($service, $param)
 	{
 		global $wpdb;
 		$session = $_SESSION['sessionId'];
-		
-		$row = getDataFromSession();
-		
+				
 		$adultIndex = 'adult'.$service;
 		$childrenIndex = 'children'.$service;
 		$adultqty = $param[$adultIndex]!= null ?$param[$adultIndex]:0;
@@ -253,8 +253,9 @@ function get_areas () {
 	
 	$defarea = 0;
 	if ($row != null)	
+	{
 		$defarea =  $row->areaId;
-				
+	}			
 	global $wpdb;
 	$areas = $wpdb->get_results( $wpdb->prepare( 
 		"
@@ -266,10 +267,9 @@ function get_areas () {
 		$result = $result . "<input type='radio' name='area' value='". $row->id ."' " .  ($row->id==$defarea? "checked":"" )   . ">".$row->description."</br>";
 	}
 	
-	$result = $result . '</form>
-		<button onclick="indietroclick()">indietro</button>
-		<button onclick="avanticlick()">avanti</button>
-		';
+	$result = $result . '</form>'
+			 . getNavButtons(true, true);
+			 
 	return $result;
 }
 
@@ -281,10 +281,10 @@ function get_services ($area) {
 	
 	$sessionrow = getDataFromSession();
 	
-	if ($area == null){
+	if ($area == null && $sessionrow!=null){
 		$area = $sessionrow->areaId;
 	}
-	if ( $sessionrow->persons != null )
+	if ( $sessionrow !=null && $sessionrow->persons != null )
 		parse_str($sessionrow->persons, $params);
 	
 	
@@ -296,19 +296,19 @@ function get_services ($area) {
 		WHERE areaId=%d", $area) ); 
 	
 	foreach($services as $key=>$row){
+
 		$result = $result . "<input type='radio' name='service' value=".$row->id."  ".  ($row->id==$sessionrow->serviceId? "checked":"" )   .">".$row->description. 
 							"</input>
 							<label>Max adulti ". $row->adultQty . "</label>
 							<input name='adult".$row->id."' type='number' min='1' max='". $row->adultQty . "' value='". ($params!=null && $row->id==$sessionrow->serviceId?$params['adult']:"") ."' style='width:100px; ' ></input>
 							<label>Max bambini ". $row->childrenQty . "</label>
 							<input name='children".$row->id."' type='number' min='1' max='". $row->childrenQty . "' value='" . ($params!=null && $row->id==$sessionrow->serviceId?$params['children']:"") . "' style='width:100px; ' ></input>
-							</br>";
+							</br>";							
 	}
 	
-	$result = $result . '</form>
-		<button onclick="indietroclick()">indietro</button>
-		<button onclick="avanticlick()">avanti</button>
-		';
+	$result = $result . '</form>'
+			 . getNavButtons(true, true);
+
 		
 	return $result;
 }
@@ -330,21 +330,81 @@ function get_user_data () {
 		<input id="surname" name="surname" value="'. ($params!=null?$params['surname']:'') .'"></input></br>
 		<label for"email">Email</label>
 		<input id="email" name="email" value="'. ($params!=null?$params['email']:'') .'"></input>
-		</form>
-		<button onclick="indietroclick()">indietro</button>';
+		</form>'
+		 . getNavButtons(true, true);
 		
 	return $result;
+}
+
+function get_summary () {
+
+
+	$result =' 	
+	<label>Riepilogo</label><br/>';
+	$sessionrow = getExtededDataFromSession();
+
+	parse_str($sessionrow->userdata, $userdata);
+	parse_str($sessionrow->persons, $persons);
+	
+	
+	$result = $result . '<label>Nome:' . $userdata['name'] .'</label><br/>
+		<label>Cognome:'. $userdata['surname'] .' </label><br/>
+		<label>Email: '. $userdata['email'] .'</label><br/>
+		<label>Area: '. $sessionrow->adesc .'</label><br/>
+		<label>Servizio: '. $sessionrow->sdesc .'</label><br/>
+		<label>Adulti: '. $persons['adult'] .'</label><br/>
+		<label>Bambini: '. $persons['children'] .'</label><br/>
+		
+		';
+	
+	
+	$result = $result 
+			 . getNavButtons(true, false);
+
+		
+	return $result;
+}
+
+
+
+function getNavButtons($back, $next)
+{
+
+	$result = '';
+
+	if ($back)
+		$result = $result . '<button onclick="indietroclick()">indietro</button>';	
+
+	if ($next)
+		$result = $result . '<button onclick="avanticlick()">avanti</button>';	
+
+	return $result;		
+}
+
+
+function getExtededDataFromSession()
+{
+	$session = $_SESSION['sessionId'];
+	global $wpdb;
+	$temp = $wpdb->get_row(
+		"SELECT * , a.description AS adesc, s.description AS sdesc
+			FROM  `wp_aao_bkg_temp_bookings` AS t
+			LEFT JOIN wp_aao_bkg_areas AS a ON t.areaid = a.id
+			LEFT JOIN wp_aao_bkg_services AS s ON t.serviceid = s.id
+			WHERE	session=" . $session  ); 
+	
+	return $temp;
 }
 
 function getDataFromSession()
 {
 	$session = $_SESSION['sessionId'];
 	global $wpdb;
-	$temp = $wpdb->get_row( $wpdb->prepare( 
+	$temp = $wpdb->get_row(
 		"
 		SELECT      *
 		FROM        wp_aao_bkg_temp_bookings
-		WHERE		session=%d", $session ) ); 
+		WHERE		session=" . $session  ); 
 	
 	return $temp;
 }
