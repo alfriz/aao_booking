@@ -158,6 +158,8 @@ function get_bookingdata()
 {
 	$session = $_SESSION['sessionId'];
 
+	deleteOldSessions();
+
 	if ( $session < time() - (15 * 60))
 		$_SESSION['sessionId'] = time();
 
@@ -381,6 +383,17 @@ function getNavButtons($back, $next)
 	return $result;		
 }
 
+
+function deleteOldSessions()
+{
+	$session = time() - (15 * 60);
+	global $wpdb;
+	$temp = $wpdb->query( 
+		"DELETE FROM `wp_aao_bkg_temp_bookings`
+			WHERE	session<" . $session  ); 
+	
+	return $temp;
+}
 
 function getExtededDataFromSession()
 {
