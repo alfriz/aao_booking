@@ -52,13 +52,16 @@ function fdata(isavanti)
 	var index = jQuery("#index").val();
 	
 	var data = '';
+	
+	errorCode = 0;
+	
 	if (index == 0)
 	{
 		if (jQuery("#date").val() !="")
 			data = jQuery('#dataora').serialize();
 		else{
 			errorCode = 1;
-			alert ("Inserire data");
+			alert ("Selezionare una data");
 		}
 	}
 	if (index == 1)
@@ -67,25 +70,34 @@ function fdata(isavanti)
 		data = jQuery('#aree').serialize();
 		if (data=="" && isavanti){
 			errorCode = 1;
-			alert ("Inserire area");
+			alert ("Selezionare un'area");
 		}
 	}
 	if (index == 2)
 	{
 		data = jQuery('#servizi').serialize();
-		
+	
 		  //TODO gestire le quantità confrontando con campi hidden inseriti da PHP		  
 		var params = JSON.parse('{"' + decodeURI(data).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"') + '"}')
-		if (params['service']==null && isavanti){
-			errorCode = 1;
-			alert ("Inserire servizi");
+		var tot = 0;
+	
+		for (var key in params) {
+			if (key.startsWith('qty' )) {
+				tot = tot + (parseInt(params[key]) || 0);
+			}
 		}
+	
+		if ((tot>params['max'] || tot<params['min']) && isavanti){
+			errorCode = 1;
+		
+			alert ("Attenzione. L'area " + jQuery('#areadesc').val() + " può ospitare un minimo di "+ params['min']+" ed un massimo di "+ params['max']+" persone. Correggere la scelta effettuata o tornare alla schermata precedente.");
+		}
+		
 	}
 	if (index == 3)
 	{
 		data = jQuery('#datiutente').serialize();
 	}
-
 	
 	return data;
 };
