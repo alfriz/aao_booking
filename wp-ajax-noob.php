@@ -23,6 +23,15 @@ if ( ! defined( 'WPINC' ) ) { die; }
 /* Init Hook */
 add_action( 'init', 'my_wp_ajax_noob_plugin_init', 10 );
 
+
+$aao_pluginurl= ""; 
+
+function add_query_vars_filter( $vars ){
+  $vars[] = "sid";
+  return $vars;
+}
+add_filter( 'query_vars', 'add_query_vars_filter' );
+
 /**
  * Init Hook to Register Shortcode.
  * @since 1.0.0
@@ -34,7 +43,7 @@ function my_wp_ajax_noob_plugin_init(){
         session_start();
     }
     
-	add_shortcode( 'john-cena', 'my_wp_ajax_noob_aao_booking_shortcode_callbacks' );
+	add_shortcode( 'aao-booking', 'my_wp_ajax_noob_aao_booking_shortcode_callbacks' );
 
 }
 
@@ -44,7 +53,6 @@ function my_wp_ajax_noob_plugin_init(){
  */
 function my_wp_ajax_noob_aao_booking_shortcode_callbacks(){
 	global $wpdb;
-	
 
 	wp_enqueue_script( 'my-wp-ajax-noob-aao-booking-script' );
 
@@ -54,10 +62,41 @@ function my_wp_ajax_noob_aao_booking_shortcode_callbacks(){
 		$_SESSION['sessionId'] = time();
 	} else {
    		 $value = '';
-}
+	}
 	
-	return '<div id="containerpage">'. get_bookingdata(). '</div>';
+	if(!isset($_SESSION['url'])) 
+		$_SESSION['url']  = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+
+
+	$res = manageparam();
+	
+	if ($res!=null)	
+		return $res;
+	else
+
+		return '<div id="containerpage">'. get_bookingdata(). '</div>';
 }
+
+function manageparam()
+{
+	$res = get_query_var( 'sid', '0' );
+
+	
+	$res = intval ($res);
+	if ($res == '0')
+		return null;
+		
+	$sessionInfo = getSessionData($res);
+
+	if ($sessionInfo!=null)
+	{
+		saveBooking();
+		return get_bookingsaved();
+	}	
+	else
+		return null;
+}	
+
 
 
 /* 2. REGISTER SCRIPT
@@ -109,8 +148,8 @@ function my_wp_ajax_noob_aao_booking_ajax_callback(){
 
 		if($isavanti == 1) {
 			$index = $index + 1;
-			if ( $index > 5)
-				$index = 5;
+			if ( $index > 4)
+				$index = 4;
 		} else {
 			$index = $index - 1;
 			if ( $index < 0)
@@ -124,6 +163,8 @@ function my_wp_ajax_noob_aao_booking_ajax_callback(){
 	if($index == 0){
 		$results = get_bookingdata();
 	} elseif($index == 1){
+	
+	
 		parse_str($inputdata, $params);	
 		$results = get_areas($params['date']) ;
 	} elseif($index == 2){	
@@ -133,9 +174,7 @@ function my_wp_ajax_noob_aao_booking_ajax_callback(){
 		$results = get_user_data();
 	} elseif($index == 4){
 		$results = get_summary();
-	} elseif($index == 5){
-		$results = get_bookingsaved();
-	}
+	} 
 	
 		//$results = "<h2> Sono data: ".$greeting."</h2>"; // Return String 
 	die($results); 
@@ -176,13 +215,13 @@ function saveData($index, $inputdata)
 	}elseif($index == 4){
 		saveBooking();
 	}
-	
+
 }
 
 function get_bookingdata()
 {
 	$session = $_SESSION['sessionId'];
-
+	
 	$row = getDataFromSession();
 	
 	$date = '';
@@ -191,6 +230,8 @@ function get_bookingdata()
 		$dates = date_create_from_format('Y-m-d', $row->day);
 		$date = date_format($dates, 'd-m-Y');
 	}
+	
+	
 	return '
  		<label>Selezionare una data</label>
 		<form id="dataora">
@@ -312,22 +353,32 @@ function get_areas ($date) {
 
 	$areas = $wpdb->get_results( $wpdb->prepare( $sql ) ); 
 	
-	$dates = date_create_from_format('Y-m-d', $date);
-	$formatdate = date_format($dates, 'd-m-Y');
+	if ($wpdb->num_rows > 0)
+	{
+		$dates = date_create_from_format('Y-m-d', $date);
+		$formatdate = date_format($dates, 'd-m-Y');
 	
-	$result = '
-		<label>Per il '. $formatdate .' sono disponibili queste aree:</label>
-		<form id="aree">
-		<input id="index" type="hidden" value="1"/>
-		';	
+		$result = '
+			<label>Per il '. $formatdate .' sono disponibili queste aree:</label>
+			<form id="aree">
+			<input id="index" type="hidden" value="1"/>
+			';	
 	
-	foreach($areas as $key=>$row){
-		$result = $result . "<input type='radio' name='area' value='". $row->id ."' " .  ($row->id==$defarea? "checked":"" )   . ">".$row->description. "</br>";
+		foreach($areas as $key=>$row){
+			$result = $result . "<input type='radio' name='area' value='". $row->id ."' " .  ($row->id==$defarea? "checked":"" )   . ">".$row->description. "</br>";
+		}
+	
+		$result = $result . '</form>'
+			 . getNavButtons(true, true);
+	}		 
+	else
+	{
+		$result = '<label>Per il '. $formatdate .'  non è disponibile nessuna area, </label></br>
+			<label>riprova con altri giorni</label>';
+		$result = $result .
+			 getNavButtons(true, false);
 	}
 	
-	$result = $result . '</form>'
-			 . getNavButtons(true, true);
-			 
 	return $result;
 }
 
@@ -439,20 +490,73 @@ function get_summary () {
 	}
 	
 	$result = $result .'<label>Totale '. $totale .'€ </label><br/>';
-	
+    
 	$result = $result 
-			 . getNavButtons(true, true);
-
+			 .paypalbtn($totale);
 		
 	return $result;
 }
 
-function get_bookingsaved () {
-$result =' 	
-	<label>Prenotazione completata!</label><br/>
-	<label>A breve riceverete una mail di conferma</label><br/>
-	<label>Grazie</label><br/>';
+function paypalbtn($totale)
+{
+
+	global $wp;
+	global $aao_pluginurl;
 	
+	$session = $_SESSION['sessionId'];
+	
+	$options = get_option('aao_booking_settingsoptions');
+	foreach ($options as $k => $v ) { $value[$k] = $v; }
+
+
+	// live of test mode
+	if ($value['mode'] == "1") {
+		$account = $value['sandboxaccount'];
+		$path = "sandbox.paypal";
+	} elseif ($value['mode'] == "2")  {
+		$account = $value['liveaccount'];
+		$path = "paypal";
+	}
+	
+	if ($value['paymentaction'] == "1") {
+		$paymentaction = "sale";
+	} elseif ($value['paymentaction'] == "2")  {
+		$paymentaction = "authorization";
+	} else {
+		$paymentaction = "sale";
+	}
+	
+	$current_url= substr($_SESSION['url'],0, strrpos($_SESSION['url'], "/")+1);
+
+		
+	$returnurl =  $current_url.'?sid='.$session;
+	$cancelurl =  $current_url.'?sid=0';
+
+	$output .= "<form target='' action='https://www.".$path.".com/cgi-bin/webscr' method='post'>";
+	$output .= "<input type='hidden' name='cmd' value='_xclick' />";
+	$output .= "<input type='hidden' name='business' value='".$account. "' />";
+	$output .= "<input type='hidden' name='item_name' value='Galassi' />";
+	$output .= "<input type='hidden' name='currency_code' value='EUR' />";
+	$output .= "<input type='hidden' name='amount' value='". $totale ."' />";
+	$output .= "<input type='hidden' name='lc' value='it_IT'>";
+	$output .= "<input type='hidden' name='no_note' value=''>";
+	$output .= "<input type='hidden' name='paymentaction' value='".$paymentaction."'>";
+	$output .= "<input type='hidden' name='return' value='' />";
+	$output .= "<input type='hidden' name='notify_url' value='". $returnurl ."' />";
+	$output .= "<input type='hidden' name='bn' value='WPPlugin_SP'>";
+	$output .= "<input type='hidden' name='cancel_return' value='". $cancelurl ."' />";
+	$output .= "<input style='border: none;' class='paypalbuttonimage' type='image' src='https://www.paypalobjects.com/it_IT/IT/i/btn/btn_buynowCC_LG.gif' border='0' name='submit' alt='Paga con Paypal'>";
+	$output .= "<img alt='' border='0' style='border:none;display:none;' src='https://www.paypal.com/it_IT/i/scr/pixel.gif' width='1' height='1'>";
+	$output .= "</form>";
+	
+	return $output;
+}
+
+function get_bookingsaved () {
+	$result =' 	
+		<label>Prenotazione completata!</label><br/>
+		<label>A breve riceverete una mail di conferma</label><br/>
+		<label>Grazie</label><br/>';
 	
 	return $result;
 }
@@ -536,12 +640,19 @@ function getServiceInfo($serviceid)
 function getDataFromSession()
 {
 	$session = $_SESSION['sessionId'];
+	return getSessionData($session);
+}
+
+function getSessionData($session)
+{
 	global $wpdb;
 	$temp = $wpdb->get_row(
-		"
-		SELECT      *
-		FROM        wp_aao_bkg_temp_bookings
-		WHERE		session=" . $session  ); 
+		$wpdb->prepare( 
+			"
+			SELECT      *
+			FROM        wp_aao_bkg_temp_bookings
+			WHERE		session=%d", $session )  
+		); 
 	
 	return $temp;
 }
@@ -551,3 +662,121 @@ function startsWith($haystack, $needle)
      $length = strlen($needle);
      return (substr($haystack, 0, $length) === $needle);
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+// Admin
+
+// settings page menu link
+add_action( "admin_menu", "aao_booking_plugin_menu" );
+
+function aao_booking_plugin_menu() {
+	add_options_page( "AAO Booking", "AAO Booking", "manage_options", "aao-booking-settings", "aao_booking_plugin_options" );
+}
+
+
+function aao_booking_plugin_options() {
+	
+	if ( !current_user_can( "manage_options" ) )  {
+		wp_die( __( "You do not have sufficient permissions to access this page." ) );
+	}
+
+	// settings page
+
+	echo "<table width='100%'><tr><td width='70%'><br />";
+	echo "<label style='color: #000;font-size:18pt;'><center>AAO Booking Settings</center></label>";
+	echo "<form method='post' action='".$_SERVER["REQUEST_URI"]."'>";
+
+
+	// save and update options
+	if (isset($_POST['update'])) {
+
+		$options['liveaccount'] = 		$_POST['liveaccount'];
+		$options['sandboxaccount'] = 	$_POST['sandboxaccount'];
+		$options['mode'] = 				$_POST['mode'];
+		$options['paymentaction'] = 	$_POST['paymentaction'];
+
+		update_option("aao_booking_settingsoptions", $options);
+
+		echo "<br /><div class='updated'><p><strong>"; _e("Settings Updated."); echo "</strong></p></div>";
+
+	}
+
+
+	// get options
+	$options = get_option('aao_booking_settingsoptions');
+	foreach ($options as $k => $v ) { $value[$k] = $v; }
+
+
+	echo "</td><td></td></tr><tr><td>";
+
+
+	// form
+	echo "<br />";
+	?>
+
+	<div style="background-color:#333333;padding:8px;color:#eee;font-size:12pt;font-weight:bold;">
+	&nbsp; Usage
+	</div><div style="background-color:#fff;border: 1px solid #E5E5E5;padding:5px;"><br />
+
+	Enjoy!
+
+	<br /><br />
+	</div><br /><br />
+
+
+	<?php
+
+
+	?>
+	<br /><br /><div style="background-color:#333333;padding:8px;color:#eee;font-size:12pt;font-weight:bold;">
+	&nbsp; PayPal Account </div><div style="background-color:#fff;border: 1px solid #E5E5E5;padding:5px;"><br />
+
+	<?php
+
+	echo "<b>Live Account: </b><input type='text' name='liveaccount' value='".$value['liveaccount']."'> Required";
+	echo "<br />Enter a valid Merchant account ID (strongly recommend) or PayPal account email address. All payments will go to this account.";
+	echo "<br /><br />You can find your Merchant account ID in your PayPal account under Profile -> My business info -> Merchant account ID";
+
+	echo "<br /><b>Sandbox Account: </b><input type='text' name='sandboxaccount' value='".$value['sandboxaccount']."'> Optional";
+	echo "<br />Enter a valid sandbox PayPal account email address. A Sandbox account is a PayPal accont with fake money used for testing. This is useful to make sure your PayPal account and settings are working properly being going live.";
+	echo "<br /><br />To create a Sandbox account, you first need a Developer Account. You can sign up for free at the <a target='_blank' href='https://www.paypal.com/webapps/merchantboarding/webflow/unifiedflow?execution=e1s2'>PayPal Developer</a> site. <br /><br />";
+
+
+	echo "<b>Sandbox Mode:</b>";
+	echo "&nbsp; &nbsp; <input "; if ($value['mode'] == "1") { echo "checked='checked'"; } echo " type='radio' name='mode' value='1'>On (Sandbox mode)";
+	echo "&nbsp; &nbsp; <input "; if ($value['mode'] == "2") { echo "checked='checked'"; } echo " type='radio' name='mode' value='2'>Off (Live mode)";
+
+	echo "<br /><br /><b>Payment Action:</b>";
+	echo "&nbsp; &nbsp; <input "; if ($value['paymentaction'] == "1") { echo "checked='checked'"; } echo " type='radio' name='paymentaction' value='1'>Sale (Default)";
+	echo "&nbsp; &nbsp; <input "; if ($value['paymentaction'] == "2") { echo "checked='checked'"; } echo " type='radio' name='paymentaction' value='2'>Authorize (Learn more <a target='_blank' href='https://developer.paypal.com/docs/classic/paypal-payments-standard/integration-guide/authcapture/'>here</a>)";
+
+	echo "<br /><br /></div>";
+
+	?>
+
+	<br /><br /></div>
+
+	<input type='hidden' name='update'><br />
+	<input type='submit' name='btn2' class='button-primary' style='font-size: 17px;line-height: 28px;height: 32px;' value='Save Settings'>
+
+	<br /><br /><br />
+
+	</form>
+
+
+	</td><td width='5%'>
+	</td><td width='24%' valign='top'>
+
+	<br />
+
+	</td><td width='1%'>
+
+	</td></tr></table>
+
+
+	<?php
+
+	// end settings page and required permissions
+}
+
