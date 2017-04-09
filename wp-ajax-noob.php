@@ -118,6 +118,9 @@ function my_wp_ajax_noob_aao_booking_ajax_callback(){
 		}
 	}
 	
+	if (checkSession())
+		$index =0;
+	
 	if($index == 0){
 		$results = get_bookingdata();
 	} elseif($index == 1){
@@ -137,6 +140,23 @@ function my_wp_ajax_noob_aao_booking_ajax_callback(){
 		//$results = "<h2> Sono data: ".$greeting."</h2>"; // Return String 
 	die($results); 
 
+}
+
+function checkSession()
+{
+	$result = false;
+
+	$session = $_SESSION['sessionId'];
+	
+	deleteOldSessions();	
+
+	if ( $session < time() - (15 * 60))
+	{
+		$_SESSION['sessionId'] = time();
+		$result = true;
+	}
+	
+	return $result;
 }
 
 function saveData($index, $inputdata)
@@ -163,13 +183,7 @@ function get_bookingdata()
 {
 	$session = $_SESSION['sessionId'];
 
-	deleteOldSessions();
-
-	if ( $session < time() - (15 * 60))
-		$_SESSION['sessionId'] = time();
-
 	$row = getDataFromSession();
-
 	
 	$date = '';
 	if ($row != null)
@@ -257,18 +271,16 @@ function saveBooking()
 function get_areas ($date) {
 
 	$row = getDataFromSession();
+	
+	$session = $_SESSION['sessionId'];
 
 	if ($date == null && $row!=null){
-		$date = $row->day;
-		$dates = date_create_from_format('Y-m-d', $date);
-		$date = date_format($dates, 'd-m-Y');
+		$date = $row->day;		
 	}
-
-	$result = '
-		<label>Per il '. $date .' sono disponibili queste aree:</label>
-		<form id="aree">
-		<input id="index" type="hidden" value="1"/>
-		';
+	else{
+		$dates = date_create_from_format('d-m-Y', $date);
+		$date = date_format($dates, 'Y-m-d');
+	}
 	
 	$defarea = 0;
 	if ($row != null)	
@@ -276,14 +288,41 @@ function get_areas ($date) {
 		$defarea =  $row->areaId;
 	}			
 	global $wpdb;
-	$areas = $wpdb->get_results( $wpdb->prepare( 
-		"
-		SELECT      *
-		FROM        wp_aao_bkg_areas
-	") ); 
+	
+	$sql = "
+		SELECT a.*
+		FROM  `wp_aao_bkg_areas` AS a
+		
+			LEFT OUTER JOIN (
+				SELECT * 
+				FROM wp_aao_bkg_bookings
+				WHERE DAY =  '" . $date . "')
+			as b
+			ON a.id = b.areaid
+
+			LEFT OUTER JOIN (
+				SELECT * 
+				FROM wp_aao_bkg_temp_bookings
+				WHERE day =  '" . $date . "' and session != " . $session . ")
+			as t
+			ON a.id = t.areaid
+
+		WHERE b.areaid IS NULL AND t.areaid is NULL 
+	";
+
+	$areas = $wpdb->get_results( $wpdb->prepare( $sql ) ); 
+	
+	$dates = date_create_from_format('Y-m-d', $date);
+	$formatdate = date_format($dates, 'd-m-Y');
+	
+	$result = '
+		<label>Per il '. $formatdate .' sono disponibili queste aree:</label>
+		<form id="aree">
+		<input id="index" type="hidden" value="1"/>
+		';	
 	
 	foreach($areas as $key=>$row){
-		$result = $result . "<input type='radio' name='area' value='". $row->id ."' " .  ($row->id==$defarea? "checked":"" )   . ">".$row->description."</br>";
+		$result = $result . "<input type='radio' name='area' value='". $row->id ."' " .  ($row->id==$defarea? "checked":"" )   . ">".$row->description. "</br>";
 	}
 	
 	$result = $result . '</form>'
