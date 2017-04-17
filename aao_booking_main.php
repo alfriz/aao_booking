@@ -19,104 +19,6 @@ if(!session_id())
 	}
 ?>
 
-<head>
-<style type="text/css">
-/* CSS form prenotazione */
-.form_prenotaz{
-    font-family: "Open Sans Condensed", sans-serif;
-    width: 100%;
-    margin: 10px auto;
-    padding: 16px;
-    background: #F7F7F7;
-}
-
-.form_prenotaz h1{
-    font-family: "Open Sans Condensed", sans-serif;
-    background: #ffcc33;
-    padding: 20px 0;
-    font-size: 180%;
-    font-weight: 700;
-    text-align: center;
-    color: #4C3D2D;
-    margin: -16px -16px 16px -16px;
-}
-.form_prenotaz input[type="text"],
-.form_prenotaz input[type="date"],
-.form_prenotaz input[type="datetime"],
-.form_prenotaz input[type="email"],
-.form_prenotaz input[type="number"],
-.form_prenotaz input[type="search"],
-.form_prenotaz input[type="time"],
-.form_prenotaz input[type="url"],
-.form_prenotaz textarea,
-.form_prenotaz select 
-{
-    -webkit-transition: all 0.30s ease-in-out;
-    -moz-transition: all 0.30s ease-in-out;
-    -ms-transition: all 0.30s ease-in-out;
-    -o-transition: all 0.30s ease-in-out;
-    outline: none;
-    box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    width: 100%;
-    background: #fff;
-    margin-bottom: 4%;
-    border: 1px solid #ccc;
-    padding: 3%;
-    color: #555;
-    font: 95% Arial, Helvetica, sans-serif;
-}
-.form_prenotaz input[type="text"]:focus,
-.form_prenotaz input[type="date"]:focus,
-.form_prenotaz input[type="datetime"]:focus,
-.form_prenotaz input[type="email"]:focus,
-.form_prenotaz input[type="number"]:focus,
-.form_prenotaz input[type="search"]:focus,
-.form_prenotaz input[type="time"]:focus,
-.form_prenotaz input[type="url"]:focus,
-.form_prenotaz textarea:focus,
-.form_prenotaz select:focus
-{
-    box-shadow: 0 0 5px #ffcc33;
-    padding: 3%;
-    border: 1px solid #ffcc33;
-}
-
-/* CSS puls. AVANTI e INDIETRO */
-.form_prenotaz input[type="submit"],
-.form_prenotaz input[type="button"]{
-    box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    width: 40%;
-    padding: 3%;
-    border-bottom: none;
-    border-top-style: none;
-    border-right-style: none;
-    border-left-style: none;    
-    background: #ffcc33;
-    color: #fff;
-    font-family: "Open Sans Condensed", sans-serif;
-    font-size: 140%;
-}
-.form_prenotaz input[type="submit"]:hover,
-.form_prenotaz input[type="button"]:hover{
-    background: #e8b41b;
-}
-
-/* CSS lista aree disponibili */
-#aree {
-	line-height:50px;
-	font-size: 2rem; 
-}
-#aree input[type="radio"] {
-	margin-right: 10px;
-}
-
-</style>
-
-</head>
 
 <?php
 
@@ -160,6 +62,7 @@ function wp_ajax_noob_aao_booking_shortcode_callbacks(){
 	global $wpdb;
 
 	wp_enqueue_script( 'my-wp-ajax-noob-aao-booking-script' );
+	wp_enqueue_style( 'my-wp-ajax-noob-aao-booking-style' ); 
 
 	/* Output empty div. */
 	
@@ -198,8 +101,10 @@ function my_wp_ajax_noob_scripts(){
 	/* JS + Localize */
 	
 	
-	wp_register_script( 'my-wp-ajax-noob-aao-booking-script', $url . "assets/script.js", array( 'jquery', 'jquery-ui-datepicker' ), '1.0.3', true );
+	wp_register_script( 'my-wp-ajax-noob-aao-booking-script', $url . "assets/script.js", array( 'jquery', 'jquery-ui-datepicker' ), '1.0.3', true );	
 	wp_localize_script( 'my-wp-ajax-noob-aao-booking-script', 'aao_booking_ajax_url', admin_url( 'admin-ajax.php' ) );
+	wp_register_style( 'my-wp-ajax-noob-aao-booking-style', $url . 'assets/style.css' );
+	
 }
 
 function wpse27856_set_content_type(){
@@ -1094,7 +999,9 @@ function getSearchData($inputdata)
 }
 function wp_ajax_noob_aao_booking_delete_shortcode_callbacks(){
 
-	wp_enqueue_script( 'my-wp-ajax-noob-aao-booking-script' );
+	wp_enqueue_script( 'my-wp-ajax-noob-aao-booking-script' );	
+	wp_enqueue_style( 'my-wp-ajax-noob-aao-booking-style' );
+
 
 	return '<div id="containerpage">'. get_bookingdelete(). '</div>';
 }
