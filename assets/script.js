@@ -98,6 +98,10 @@ function fdata(isavanti)
 	{
 		data = jQuery('#datiutente').serialize();
 	}
+	if (index == 4)
+	{
+		data = jQuery('#promocode').val();
+	}
 	
 	return data;
 };
