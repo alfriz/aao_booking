@@ -536,7 +536,8 @@ function get_summary () {
 	<input id="index" type="hidden" value="4"/>
 	<label>Riepilogo</label><br/>';
 	
-	$result = $result .summarystring($sessionrow);
+	$totale = 0;
+	$result = $result .summarystring($sessionrow, $totale);
     
     $result = $result .'<label>Hai un codice promozionale?</label><br/>';
     
@@ -552,7 +553,7 @@ function get_summary () {
 	return $result;
 }
 
-function summarystring($sessionrow)
+function summarystring($sessionrow, &$totale)
 {
 
 	$result ='';
