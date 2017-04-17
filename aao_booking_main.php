@@ -621,12 +621,14 @@ function paypalbtn($totale)
 	$output .= "<input type='hidden' name='custom' value='" . $session . "'>";	
 	$output .= "<input type='hidden' name='paymentaction' value='" . $paymentaction . "'>";
 	$output .= "<input type='hidden' name='return' value='". $returnurl ."' />";
-	$output .= "<input type='hidden' name='notify_url' value='http://www.marcotesselli.net/?AngellEYE_Paypal_Ipn_For_Wordpress&action=ipn_handler' />";
+	$output .= "<input type='hidden' name='notify_url' value='". $value['notifyurl'] ."' />";
 	$output .= "<input type='hidden' name='bn' value='WPPlugin_SP'>";
 	$output .= "<input type='hidden' name='cancel_return' value='". $cancelurl ."' />";
 	$output .= "<input style='border: none;' class='paypalbuttonimage' type='image' src='https://www.paypalobjects.com/it_IT/IT/i/btn/btn_buynowCC_LG.gif' border='0' name='submit' alt='Paga con Paypal'>";
 	$output .= "<img alt='' border='0' style='border:none;display:none;' src='https://www.paypal.com/it_IT/i/scr/pixel.gif' width='1' height='1'>";
 	$output .= "</form>";
+	
+	
 	
 	return $output;
 }
@@ -787,6 +789,7 @@ function aao_booking_plugin_options() {
 		$options['sandboxaccount'] = 		$_POST['sandboxaccount'];
 		$options['mode'] = 					$_POST['mode'];
 		$options['paymentaction'] = 		$_POST['paymentaction'];
+		$options['notifyurl'] = 			$_POST['notifyurl'];
 		$options['emailnotify'] = 			$_POST['emailnotify'];
 		$options['emailnotifybody'] = 		$_POST['emailnotifybody'];
 		$options['emailnotifysubject'] = 	$_POST['emailnotifysubject'];
@@ -843,6 +846,7 @@ function aao_booking_plugin_options() {
 	echo "<br /><br /><b>Payment Action:</b>";
 	echo "&nbsp; &nbsp; <input "; if ($value['paymentaction'] == "1") { echo "checked='checked'"; } echo " type='radio' name='paymentaction' value='1'>Sale (Default)";
 	echo "&nbsp; &nbsp; <input "; if ($value['paymentaction'] == "2") { echo "checked='checked'"; } echo " type='radio' name='paymentaction' value='2'>Authorize (Learn more <a target='_blank' href='https://developer.paypal.com/docs/classic/paypal-payments-standard/integration-guide/authcapture/'>here</a>)";
+	echo "<br /><br /><b>Notify Url:</b><input type='text' name='notifyurl' value='".$value['notifyurl']."'> Required";
 
 	echo "<br /><br /></div>";
 
