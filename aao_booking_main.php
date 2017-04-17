@@ -1,4 +1,6 @@
 <?php
+
+    
 /**
  * Plugin Name: AAO Booking
  * Plugin URI: 
@@ -11,7 +13,13 @@
  * Domain Path: /languages/
  *
 **/
+
+
+
 if ( ! defined( 'WPINC' ) ) { die; }
+
+if(!session_id()) { session_start();}
+
 
 
 /* 1. REGISTER SHORTCODE
@@ -36,11 +44,9 @@ add_filter( 'query_vars', 'add_query_vars_filter' );
 function my_wp_ajax_noob_plugin_init(){
 
 	/* Register Shortcode */
-	if(!session_id()) {
-        session_start();
-    }
-    
-	add_shortcode( 'aao-booking', 'my_wp_ajax_noob_aao_booking_shortcode_callbacks' );
+
+	add_shortcode( 'aao-booking', 'wp_ajax_noob_aao_booking_shortcode_callbacks' );
+	add_shortcode( 'aao-booking-delete', 'wp_ajax_noob_aao_booking_delete_shortcode_callbacks' );
 
 }
 
@@ -48,7 +54,7 @@ function my_wp_ajax_noob_plugin_init(){
  * Shortcode Callback
  * Just display empty div. The content will be added via AJAX.
  */
-function my_wp_ajax_noob_aao_booking_shortcode_callbacks(){
+function wp_ajax_noob_aao_booking_shortcode_callbacks(){
 	global $wpdb;
 
 	wp_enqueue_script( 'my-wp-ajax-noob-aao-booking-script' );
@@ -187,6 +193,8 @@ function my_wp_ajax_noob_aao_booking_ajax_callback(){
 	die($results); 
 
 }
+
+
 
 function getBackDoorPromoCode()
 {
@@ -882,4 +890,127 @@ function aao_booking_plugin_options() {
 
 	// end settings page and required permissions
 }
+
+
+
+
+
+//-----------------
+
+
+add_action( 'wp_ajax_aao_booking_search', 'my_wp_ajax_noob_aao_booking_delete_ajax_callback' );
+add_action( 'wp_ajax_aao_booking_delete', 'my_wp_ajax_noob_aao_booking_delete_ajax_callback' );
+add_action( 'wp_ajax_nopriv_aao_booking_search', 'my_wp_ajax_noob_aao_booking_delete_ajax_callback' );
+add_action( 'wp_ajax_nopriv_aao_booking_delete', 'my_wp_ajax_noob_aao_booking_delete_ajax_callback' );
+
+
+function my_wp_ajax_noob_aao_booking_delete_ajax_callback(){
+//get data from the ajax() call 
+	$issearch = $_POST['issearch'];
+	$inputdata = $_POST['inputdata'];
+	
+	$result = get_bookingdelete();
+	if ($issearch)
+	{
+		$sessionrow = getSearchData($inputdata);
+		
+		if ($sessionrow !=null)
+		{
+
+			parse_str($sessionrow->userdata, $userdata);
+			parse_str($sessionrow->persons, $persons);
+	
+			$dates = date_create_from_format('Y-m-d', $sessionrow->day);
+			$formatdate = date_format($dates, 'd-m-Y');
+	
+			$result = $result . '<br/><label>Giorno: ' . $formatdate .'</label><br/>';
+			$result = $result . '<label>Nome: ' . $userdata['name'] .'</label><br/>
+			<label>Cognome:'. $userdata['surname'] .' </label><br/>
+			<label>Email: '. $userdata['email'] .'</label><br/>
+			<label>Telefono: '. $userdata['tel'] .'</label><br/>
+			<label>Area: '. $sessionrow->adesc .'</label><br/>';
+			$result = $result . '<button onclick="deleteclick('. $sessionrow->pid .')">Elimina</button>';
+		}
+		else
+		{
+			$result = $result . '<br/><label>Nessuna prenotazione </label><br/>' ;
+		}
+	}
+	else
+	{
+		deteteBookingData($inputdata);
+		$result = $result . '<br/><label>Cancellazione eseguita </label><br/>';
+	}
+	
+	die($result); 
+	
+}
+
+
+function deteteBookingData($inputdata)
+{
+	global $wpdb;
+	parse_str($inputdata, $params);
+		
+	$temp = $wpdb->query( 
+	"DELETE FROM `wp_aao_bkg_bookings`
+		WHERE id=" . $params['id']  ); 
+	
+}
+
+function getSearchData($inputdata)
+{
+	global $wpdb;
+	
+	parse_str($inputdata, $params);
+	
+	$dates = date_create_from_format('d-m-Y', $params['date']);
+	
+	$temp = $wpdb->get_row(
+		"SELECT * , a.description AS adesc, t.id as pid
+			FROM  `wp_aao_bkg_bookings` AS t
+			LEFT JOIN wp_aao_bkg_areas AS a ON t.areaid = a.id
+			WHERE	t.areaid = " . $params['area'] . " AND t.day ='" . date_format($dates, 'Y-m-d') .  "'"  ); 
+	
+	return $temp;
+}
+function wp_ajax_noob_aao_booking_delete_shortcode_callbacks(){
+
+	wp_enqueue_script( 'my-wp-ajax-noob-aao-booking-script' );
+
+	return '<div id="containerpage">'. get_bookingdelete(). '</div>';
+}
+
+
+function get_bookingdelete()
+{	
+	global $wpdb;
+	
+	$sql = "
+		SELECT *
+		FROM  `wp_aao_bkg_areas` 
+	";
+
+	$areas = $wpdb->get_results( $sql ); 
+                    
+    $result = $result . '
+ 		<label>Selezionare una data e un\'area da ricercare</label>
+		<form id="search-booking">                	
+		<input id="date" name="date" class="dateclass" value="'.$date.'"/>';
+
+	$result = $result .'<select name ="area">';
+
+	foreach($areas as $key=>$row){
+      $result = $result . "<option value='".$row->id."'>".$row->description."</option>";
+   	}	
+	$result = $result .'</select>';
+
+	$result = $result .	'</form>';
+	
+	$result = $result . '<button onclick="searchclick()">Cerca</button>';	
+	
+	return $result;
+
+}
+
 

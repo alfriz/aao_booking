@@ -37,6 +37,44 @@ function indietroclick()
 		}); 
 }
 
+function searchclick()
+{
+	errorCode = 0;
+	jQuery.ajax({ 
+			type: 'POST', 
+			url: aao_booking_ajax_url, 
+			data: { action: 'aao_booking_search',  issearch: 1, inputdata:jQuery('#search-booking').serialize()}, 
+			success: function(data, textStatus, XMLHttpRequest){
+				jQuery("#containerpage").html(''); 
+				jQuery("#containerpage").append(data); 
+				resetdatalayout();
+			}, 
+			error: function(MLHttpRequest, textStatus, errorThrown){ alert(errorThrown); } 
+		}); 
+}
+
+function deleteclick(id)
+{
+	errorCode = 0;
+	
+	if (confirm('Sei sicure di voler cancellare questa prenotazione?'))
+	{
+		jQuery.ajax({ 
+				type: 'POST', 
+				url: aao_booking_ajax_url, 
+				data: { action: 'aao_booking_delete',  issearch: 0, inputdata:'id='+id}, 
+				success: function(data, textStatus, XMLHttpRequest){
+					jQuery("#containerpage").html(''); 
+					jQuery("#containerpage").append(data); 
+					resetdatalayout();
+				}, 
+				error: function(MLHttpRequest, textStatus, errorThrown){ alert(errorThrown); } 
+			}); 
+	}
+	else
+		resetdatalayout();
+}
+
 
 function resetdatalayout()
 {
