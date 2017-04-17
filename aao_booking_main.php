@@ -1,6 +1,5 @@
 <?php
 
-    
 /**
  * Plugin Name: AAO Booking
  * Plugin URI: 
@@ -14,13 +13,114 @@
  *
 **/
 
+if(!session_id()) 
+	{ 
+		session_start();
+	}
+?>
 
+<head>
+<style type="text/css">
+/* CSS form prenotazione */
+.form_prenotaz{
+    font-family: "Open Sans Condensed", sans-serif;
+    width: 100%;
+    margin: 10px auto;
+    padding: 16px;
+    background: #F7F7F7;
+}
+
+.form_prenotaz h1{
+    font-family: "Open Sans Condensed", sans-serif;
+    background: #ffcc33;
+    padding: 20px 0;
+    font-size: 180%;
+    font-weight: 700;
+    text-align: center;
+    color: #4C3D2D;
+    margin: -16px -16px 16px -16px;
+}
+.form_prenotaz input[type="text"],
+.form_prenotaz input[type="date"],
+.form_prenotaz input[type="datetime"],
+.form_prenotaz input[type="email"],
+.form_prenotaz input[type="number"],
+.form_prenotaz input[type="search"],
+.form_prenotaz input[type="time"],
+.form_prenotaz input[type="url"],
+.form_prenotaz textarea,
+.form_prenotaz select 
+{
+    -webkit-transition: all 0.30s ease-in-out;
+    -moz-transition: all 0.30s ease-in-out;
+    -ms-transition: all 0.30s ease-in-out;
+    -o-transition: all 0.30s ease-in-out;
+    outline: none;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    width: 100%;
+    background: #fff;
+    margin-bottom: 4%;
+    border: 1px solid #ccc;
+    padding: 3%;
+    color: #555;
+    font: 95% Arial, Helvetica, sans-serif;
+}
+.form_prenotaz input[type="text"]:focus,
+.form_prenotaz input[type="date"]:focus,
+.form_prenotaz input[type="datetime"]:focus,
+.form_prenotaz input[type="email"]:focus,
+.form_prenotaz input[type="number"]:focus,
+.form_prenotaz input[type="search"]:focus,
+.form_prenotaz input[type="time"]:focus,
+.form_prenotaz input[type="url"]:focus,
+.form_prenotaz textarea:focus,
+.form_prenotaz select:focus
+{
+    box-shadow: 0 0 5px #ffcc33;
+    padding: 3%;
+    border: 1px solid #ffcc33;
+}
+
+/* CSS puls. AVANTI e INDIETRO */
+.form_prenotaz input[type="submit"],
+.form_prenotaz input[type="button"]{
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    width: 40%;
+    padding: 3%;
+    border-bottom: none;
+    border-top-style: none;
+    border-right-style: none;
+    border-left-style: none;    
+    background: #ffcc33;
+    color: #fff;
+    font-family: "Open Sans Condensed", sans-serif;
+    font-size: 140%;
+}
+.form_prenotaz input[type="submit"]:hover,
+.form_prenotaz input[type="button"]:hover{
+    background: #e8b41b;
+}
+
+/* CSS lista aree disponibili */
+#aree {
+	line-height:50px;
+	font-size: 2rem; 
+}
+#aree input[type="radio"] {
+	margin-right: 10px;
+}
+
+</style>
+
+</head>
+
+<?php
 
 if ( ! defined( 'WPINC' ) ) { die; }
-
-if(!session_id()) { session_start();}
-
-
 
 /* 1. REGISTER SHORTCODE
 ------------------------------------------ */
@@ -44,6 +144,8 @@ add_filter( 'query_vars', 'add_query_vars_filter' );
 function my_wp_ajax_noob_plugin_init(){
 
 	/* Register Shortcode */
+
+	
 
 	add_shortcode( 'aao-booking', 'wp_ajax_noob_aao_booking_shortcode_callbacks' );
 	add_shortcode( 'aao-booking-delete', 'wp_ajax_noob_aao_booking_delete_shortcode_callbacks' );
@@ -257,112 +359,17 @@ function get_bookingdata()
 	
 	
 	return '
- 		<label>Selezionare una data</label>
+		<h4 style="padding-top:10px; padding-bottom:20px;">Utilizza il modulo sottostante per <strong>prenotare i tuoi posti a tavola</strong>.</h4>
+ 		<div class="form_prenotaz">
+			<h1>Seleziona una data</h1>
+
 		<form id="dataora">
 		<input id="index" type="hidden" value="0"/>
-		<input id="date" name="date" class="dateclass" value="'.$date.'"/>
-		</form>'
+		<input type="date" id="date" name="date" placeholder="gg/mm/aaaa" value="'.$date.'"/>
+		</form>
+		</div>'
 		 . getNavButtons(false, true);
 
-}
-
-function updateDateTime($date)
-{
-	if ($date != null)
-	{
-		global $wpdb;
-		$session = $_SESSION['sessionId'];
-	
-		$dates = date_create_from_format('d-m-Y', $date);
-		
-		$row = getDataFromSession();
-			
-		$wpdb->query( $wpdb->prepare(  
-				'INSERT INTO wp_aao_bkg_temp_bookings (session, day) 
-				VALUES('.$session.', "'.date_format($dates, 'Y-m-d').'") ON DUPLICATE KEY UPDATE    
-				 day="'. date_format($dates, 'Y-m-d') .'"
-				 '));
-		if ($row!= null && $row->day != date_format($dates, 'Y-m-d'))		 
-			$wpdb->query(  'UPDATE wp_aao_bkg_temp_bookings SET areaId=null, persons=null, userdata=null WHERE session='. $session );
-
-	}
-}
-
-function updateArea($area)
-{
-	if ($area != null)
-	{
-		global $wpdb;
-		$session = $_SESSION['sessionId'];
-
-		$row = getDataFromSession();
-		if ($row!= null && $row->areaId != $area)
-			$wpdb->query(  'UPDATE wp_aao_bkg_temp_bookings SET areaId='. $area .', persons=null, userdata=null WHERE session='. $session );
-	}
-}
-
-function updateService($param)
-{
-	global $wpdb;
-	$session = $_SESSION['sessionId'];
-
-	$wpdb->query(  'UPDATE wp_aao_bkg_temp_bookings SET persons="'. $param .'" WHERE session='. $session );
-}
-
-function updateUserData($userdata)
-{
-	if ($userdata != null)
-	{
-		global $wpdb;
-		$session = $_SESSION['sessionId'];
-
-		$wpdb->query(  'UPDATE wp_aao_bkg_temp_bookings SET userdata="'. $userdata .'" WHERE session='. $session );
-	}
-}
-
-function saveBooking($sessionInfo)
-{
-	global $wpdb;
-
-	if ($sessionInfo==null)
-		$row = getDataFromSession();
-	else
-		$row = $sessionInfo;
-		 
-	$wpdb->query( 'INSERT INTO wp_aao_bkg_bookings
-					(dayOfRegistration, day, areaId, persons, userdata) 
-					VALUES ("'. date('Y-m-d') .'","'.$row->day.'",'.$row->areaId .',"'.$row->persons.'","'.$row->userdata.'")' );
-
-	deleteSession($row->session);
-}
-
-function sendMails($session)
-{
-
-	if ($session==null)
-		$session = $_SESSION['sessionId'];
-		
-	$options = get_option('aao_booking_settingsoptions');
-	foreach ($options as $k => $v ) { $value[$k] = $v; }
-
-	
-	$sessionrow = getExtededDataFromSession($session);
-	
-	parse_str($sessionrow->userdata, $userdata);
-	
-	$to = $userdata['email'];
-	$subject = $value['emailnotifysubject'];
-	$message = $value['emailnotifybody']. summarystring($sessionrow);
-
-	wp_mail( $to, $subject, $message );
-	
-	
-	$to = $value['emailnotify'];
-	$subject = $value['gemailnotifysubject'];
-	$message = $value['gemailnotifybody']. summarystring($sessionrow);
-
-	wp_mail( $to, $subject, $message );
-	
 }
 
 function get_areas ($date) {
@@ -415,7 +422,9 @@ function get_areas ($date) {
 		$formatdate = date_format($dates, 'd-m-Y');
 	
 		$result = '
-			<label>Per il '. $formatdate .' sono disponibili queste aree:</label>
+			<div class="form_prenotaz" style="padding-bottom:0px;">
+				<h1 style="background:green; color:#ffffff !important;">Il '. $formatdate .' sono disponibili queste aree:</h1>
+
 			<form id="aree">
 			<input id="index" type="hidden" value="1"/>
 			';	
@@ -424,13 +433,14 @@ function get_areas ($date) {
 			$result = $result . "<input type='radio' name='area' value='". $row->id ."' " .  ($row->id==$defarea? "checked":"" )   . ">".$row->description. "</br>";
 		}
 	
-		$result = $result . '</form>'
+		$result = $result . '</form> </div>'
 			 . getNavButtons(true, true);
 	}		 
 	else
 	{
-		$result = '<label>Per il '. $formatdate .'  non è disponibile nessuna area, </label></br>
-			<label>riprova con altri giorni</label>';
+		$result = '	<div class="form_prenotaz" style="padding-bottom:0px;">
+						<h1 style="background:red; color:#ffffff !important;">Spiacenti, per il '. $formatdate .'  non è disponibile nessuna area, seleziona un&rsquo;altra giornata.</h1>
+					</div>';
 		$result = $result .
 			 getNavButtons(true, false);
 	}
@@ -449,7 +459,10 @@ function get_services ($area) {
 	$areaInfo = getAreaInfo($area);
 
 	if ( $areaInfo->tipologia == 1 )
-		$result ='<label>Seleziona il numero di partecipanti per tipologia di cena</label>';
+		$result ='
+				<div class="form_prenotaz" style="padding-bottom:0px;">
+				<h1>Seleziona il numero di partecipanti per tipologia di cena</h1>
+				';
 	else
 		$result ='<label>Seleziona il numero di partecipanti</label>';
 	
@@ -651,95 +664,21 @@ function getNavButtons($back, $next)
 	$result = '';
 
 	if ($back)
-		$result = $result . '<button onclick="indietroclick()">indietro</button>';	
+		$result = $result . '
+							<div class="form_prenotaz" style="background:rgba(255, 255, 255, 0); display:inline;">
+								<input style="background:rgba(255, 204, 51, 0.6); margin-top:55px; margin-bottom:25px;" type="submit" value="Indietro" onclick="indietroclick()">
+							</div>	';	
 
 	if ($next)
-		$result = $result . '<button onclick="avanticlick()">avanti</button>';	
+		$result = $result . '
+							<div class="form_prenotaz" style="background:rgba(255, 255, 255, 0); margin-top:55px; margin-bottom:25px; display:inline;">
+								<input type="submit" value="Avanti" onclick="avanticlick()">
+							</div>	';	
 
 	return $result;		
 }
 
-function deleteSession($session)
-{
-	if ($session==null)
-		$session = $_SESSION['sessionId'];
 
-	global $wpdb;
-	$temp = $wpdb->query( 
-		"DELETE FROM `wp_aao_bkg_temp_bookings`
-			WHERE	session=" . $session  ); 
-	
-	return $temp;
-	
-}
-
-function deleteOldSessions()
-{
-	$session = time() - (15 * 60);
-	global $wpdb;
-	$temp = $wpdb->query( 
-		"DELETE FROM `wp_aao_bkg_temp_bookings`
-			WHERE	session<" . $session  ); 
-	
-	return $temp;
-
-}
-
-function getExtededDataFromSession($session)
-{
-	
-	global $wpdb;
-	$temp = $wpdb->get_row(
-		"SELECT * , a.description AS adesc
-			FROM  `wp_aao_bkg_temp_bookings` AS t
-			LEFT JOIN wp_aao_bkg_areas AS a ON t.areaid = a.id
-			WHERE	session=" . $session  ); 
-	
-	return $temp;
-}
-
-function getAreaInfo($areaid)
-{
-	global $wpdb;
-	$temp = $wpdb->get_row(
-		"SELECT *
-			FROM  `wp_aao_bkg_areas` 
-			WHERE	id=" . $areaid  ); 
-	
-	return $temp;
-}
-
-function getServiceInfo($serviceid)
-{
-	global $wpdb;
-	$temp = $wpdb->get_row(
-		"SELECT *
-			FROM  `wp_aao_bkg_services` 
-			WHERE	id=" . $serviceid  ); 
-	
-	return $temp;
-}
-
-
-function getDataFromSession()
-{
-	$session = $_SESSION['sessionId'];
-	return getSessionData($session);
-}
-
-function getSessionData($session)
-{
-	global $wpdb;
-	$temp = $wpdb->get_row(
-		$wpdb->prepare( 
-			"
-			SELECT      *
-			FROM        wp_aao_bkg_temp_bookings
-			WHERE		session=%d", $session )  
-		); 
-	
-	return $temp;
-}
 
 function startsWith($haystack, $needle)
 {
@@ -747,19 +686,9 @@ function startsWith($haystack, $needle)
      return (substr($haystack, 0, $length) === $needle);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////
 
 
-add_action("aao_paypal_confirm","aao_paypal_save");
-
-function aao_paypal_save() {
-	
-	$sid = $_POST['sid'];
-	
-	echo "isisi  ".sid;
-}
- 
-// Admin
+//----------------- Admin options page
 
 // settings page menu link
 add_action( "admin_menu", "aao_booking_plugin_menu" );
@@ -896,10 +825,194 @@ function aao_booking_plugin_options() {
 }
 
 
+//----------------- Updates functions
 
 
+function updateDateTime($date)
+{
+	if ($date != null)
+	{
+		global $wpdb;
+		$session = $_SESSION['sessionId'];
+	
+		$dates = date_create_from_format('d-m-Y', $date);
+		
+		$row = getDataFromSession();
+			
+		$wpdb->query( $wpdb->prepare(  
+				'INSERT INTO wp_aao_bkg_temp_bookings (session, day) 
+				VALUES('.$session.', "'.date_format($dates, 'Y-m-d').'") ON DUPLICATE KEY UPDATE    
+				 day="'. date_format($dates, 'Y-m-d') .'"
+				 '));
+		if ($row!= null && $row->day != date_format($dates, 'Y-m-d'))		 
+			$wpdb->query(  'UPDATE wp_aao_bkg_temp_bookings SET areaId=null, persons=null, userdata=null WHERE session='. $session );
 
-//-----------------
+	}
+}
+
+function updateArea($area)
+{
+	if ($area != null)
+	{
+		global $wpdb;
+		$session = $_SESSION['sessionId'];
+
+		$row = getDataFromSession();
+		if ($row!= null && $row->areaId != $area)
+			$wpdb->query(  'UPDATE wp_aao_bkg_temp_bookings SET areaId='. $area .', persons=null, userdata=null WHERE session='. $session );
+	}
+}
+
+function updateService($param)
+{
+	global $wpdb;
+	$session = $_SESSION['sessionId'];
+
+	$wpdb->query(  'UPDATE wp_aao_bkg_temp_bookings SET persons="'. $param .'" WHERE session='. $session );
+}
+
+function updateUserData($userdata)
+{
+	if ($userdata != null)
+	{
+		global $wpdb;
+		$session = $_SESSION['sessionId'];
+
+		$wpdb->query(  'UPDATE wp_aao_bkg_temp_bookings SET userdata="'. $userdata .'" WHERE session='. $session );
+	}
+}
+
+function saveBooking($sessionInfo)
+{
+	global $wpdb;
+
+	if ($sessionInfo==null)
+		$row = getDataFromSession();
+	else
+		$row = $sessionInfo;
+		 
+	$wpdb->query( 'INSERT INTO wp_aao_bkg_bookings
+					(dayOfRegistration, day, areaId, persons, userdata) 
+					VALUES ("'. date('Y-m-d') .'","'.$row->day.'",'.$row->areaId .',"'.$row->persons.'","'.$row->userdata.'")' );
+
+	deleteSession($row->session);
+}
+
+function sendMails($session)
+{
+
+	if ($session==null)
+		$session = $_SESSION['sessionId'];
+		
+	$options = get_option('aao_booking_settingsoptions');
+	foreach ($options as $k => $v ) { $value[$k] = $v; }
+
+	
+	$sessionrow = getExtededDataFromSession($session);
+	
+	parse_str($sessionrow->userdata, $userdata);
+	
+	$to = $userdata['email'];
+	$subject = $value['emailnotifysubject'];
+	$message = $value['emailnotifybody']. summarystring($sessionrow);
+
+	wp_mail( $to, $subject, $message );
+	
+	
+	$to = $value['emailnotify'];
+	$subject = $value['gemailnotifysubject'];
+	$message = $value['gemailnotifybody']. summarystring($sessionrow);
+
+	wp_mail( $to, $subject, $message );
+	
+}
+
+//----------------- db functions
+
+function deleteSession($session)
+{
+	if ($session==null)
+		$session = $_SESSION['sessionId'];
+
+	global $wpdb;
+	$temp = $wpdb->query( 
+		"DELETE FROM `wp_aao_bkg_temp_bookings`
+			WHERE	session=" . $session  ); 
+	
+	return $temp;
+	
+}
+
+function deleteOldSessions()
+{
+	$session = time() - (15 * 60);
+	global $wpdb;
+	$temp = $wpdb->query( 
+		"DELETE FROM `wp_aao_bkg_temp_bookings`
+			WHERE	session<" . $session  ); 
+	
+	return $temp;
+
+}
+
+function getExtededDataFromSession($session)
+{
+	
+	global $wpdb;
+	$temp = $wpdb->get_row(
+		"SELECT * , a.description AS adesc
+			FROM  `wp_aao_bkg_temp_bookings` AS t
+			LEFT JOIN wp_aao_bkg_areas AS a ON t.areaid = a.id
+			WHERE	session=" . $session  ); 
+	
+	return $temp;
+}
+
+function getAreaInfo($areaid)
+{
+	global $wpdb;
+	$temp = $wpdb->get_row(
+		"SELECT *
+			FROM  `wp_aao_bkg_areas` 
+			WHERE	id=" . $areaid  ); 
+	
+	return $temp;
+}
+
+function getServiceInfo($serviceid)
+{
+	global $wpdb;
+	$temp = $wpdb->get_row(
+		"SELECT *
+			FROM  `wp_aao_bkg_services` 
+			WHERE	id=" . $serviceid  ); 
+	
+	return $temp;
+}
+
+
+function getDataFromSession()
+{
+	$session = $_SESSION['sessionId'];
+	return getSessionData($session);
+}
+
+function getSessionData($session)
+{
+	global $wpdb;
+	$temp = $wpdb->get_row(
+		$wpdb->prepare( 
+			"
+			SELECT      *
+			FROM        wp_aao_bkg_temp_bookings
+			WHERE		session=%d", $session )  
+		); 
+	
+	return $temp;
+}
+
+
+//----------------- Booking delete page
 
 
 add_action( 'wp_ajax_aao_booking_search', 'my_wp_ajax_noob_aao_booking_delete_ajax_callback' );

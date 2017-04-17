@@ -1,3 +1,102 @@
+<head>
+<style type="text/css">
+/* CSS form prenotazione */
+.form_prenotaz{
+    font-family: "Open Sans Condensed", sans-serif;
+    width: 100%;
+    margin: 10px auto;
+    padding: 16px;
+    background: #F7F7F7;
+}
+
+.form_prenotaz h1{
+    font-family: "Open Sans Condensed", sans-serif;
+    background: #ffcc33;
+    padding: 20px 0;
+    font-size: 180%;
+    font-weight: 700;
+    text-align: center;
+    color: #4C3D2D;
+    margin: -16px -16px 16px -16px;
+}
+.form_prenotaz input[type="text"],
+.form_prenotaz input[type="date"],
+.form_prenotaz input[type="datetime"],
+.form_prenotaz input[type="email"],
+.form_prenotaz input[type="number"],
+.form_prenotaz input[type="search"],
+.form_prenotaz input[type="time"],
+.form_prenotaz input[type="url"],
+.form_prenotaz textarea,
+.form_prenotaz select 
+{
+    -webkit-transition: all 0.30s ease-in-out;
+    -moz-transition: all 0.30s ease-in-out;
+    -ms-transition: all 0.30s ease-in-out;
+    -o-transition: all 0.30s ease-in-out;
+    outline: none;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    width: 100%;
+    background: #fff;
+    margin-bottom: 4%;
+    border: 1px solid #ccc;
+    padding: 3%;
+    color: #555;
+    font: 95% Arial, Helvetica, sans-serif;
+}
+.form_prenotaz input[type="text"]:focus,
+.form_prenotaz input[type="date"]:focus,
+.form_prenotaz input[type="datetime"]:focus,
+.form_prenotaz input[type="email"]:focus,
+.form_prenotaz input[type="number"]:focus,
+.form_prenotaz input[type="search"]:focus,
+.form_prenotaz input[type="time"]:focus,
+.form_prenotaz input[type="url"]:focus,
+.form_prenotaz textarea:focus,
+.form_prenotaz select:focus
+{
+    box-shadow: 0 0 5px #ffcc33;
+    padding: 3%;
+    border: 1px solid #ffcc33;
+}
+
+/* CSS puls. AVANTI e INDIETRO */
+.form_prenotaz input[type="submit"],
+.form_prenotaz input[type="button"]{
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    width: 40%;
+    padding: 3%;
+    border-bottom: none;
+    border-top-style: none;
+    border-right-style: none;
+    border-left-style: none;    
+    background: #ffcc33;
+    color: #fff;
+    font-family: "Open Sans Condensed", sans-serif;
+    font-size: 140%;
+}
+.form_prenotaz input[type="submit"]:hover,
+.form_prenotaz input[type="button"]:hover{
+    background: #e8b41b;
+}
+
+/* CSS lista aree disponibili */
+#aree {
+	line-height:50px;
+	font-size: 2rem; 
+}
+#aree input[type="radio"] {
+	margin-right: 10px;
+}
+
+</style>
+
+</head>
+
 <?php
 /**
  * Plugin Name: WordPress AJAX Example for Beginners
@@ -90,7 +189,7 @@ function manageparam()
 
 	if ($sessionInfo!=null)
 	{
-		saveBooking();
+	//	saveBooking();
 		return get_bookingsaved();
 	}	
 	else
@@ -118,6 +217,25 @@ function my_wp_ajax_noob_scripts(){
 	
 	wp_register_script( 'my-wp-ajax-noob-aao-booking-script', $url . "assets/script.js", array( 'jquery', 'jquery-ui-datepicker' ), '1.0.3', true );
 	wp_localize_script( 'my-wp-ajax-noob-aao-booking-script', 'aao_booking_ajax_url', admin_url( 'admin-ajax.php' ) );
+}
+
+
+add_action( 'paypal_ipn_for_wordpress_payment_status_completed', 'paypal_completed');
+
+function paypal_completed($posted)
+{
+	$res = isset($posted['custom']) ? $posted['custom'] : '';
+	
+	$res = intval ($res);
+	if ($res == '0')
+		return null;
+		
+	$sessionInfo = getSessionData($res);
+
+	if ($sessionInfo!=null)
+	{
+		saveBooking();
+	}
 }
 
 
@@ -231,13 +349,18 @@ function get_bookingdata()
 		$date = date_format($dates, 'd-m-Y');
 	}
 	
-	
-	return '
- 		<label>Selezionare una data</label>
-		<form id="dataora">
-		<input id="index" type="hidden" value="0"/>
-		<input id="date" name="date" class="dateclass" value="'.$date.'"/>
-		</form>'
+	// Schermata 1
+	return
+		'
+		<h4 style="padding-top:10px; padding-bottom:20px;">Utilizza il modulo sottostante per <strong>prenotare i tuoi posti a tavola</strong>.</h4>
+ 		<div class="form_prenotaz">
+			<h1>Seleziona una data</h1>
+			<form id="dataora">
+				<input type="hidden" id="index" value="0"/>
+				<input type="date" id="date" name="date" placeholder="gg/mm/aaaa" value="'.$date.'"/>
+			</form>
+		</div>
+		'
 		 . getNavButtons(false, true);
 
 }
@@ -358,10 +481,13 @@ function get_areas ($date) {
 		$dates = date_create_from_format('Y-m-d', $date);
 		$formatdate = date_format($dates, 'd-m-Y');
 	
-		$result = '
-			<label>Per il '. $formatdate .' sono disponibili queste aree:</label>
-			<form id="aree">
-			<input id="index" type="hidden" value="1"/>
+		$result = 
+			// Schermata 2
+			'
+			<div class="form_prenotaz" style="padding-bottom:0px;">
+				<h1 style="background:green; color:#ffffff !important;">Il '. $formatdate .' sono disponibili queste aree:</h1>
+				<form id="aree">
+				<input type="hidden" id="index" value="1"/>
 			';	
 	
 		foreach($areas as $key=>$row){
@@ -373,8 +499,12 @@ function get_areas ($date) {
 	}		 
 	else
 	{
-		$result = '<label>Per il '. $formatdate .'  non è disponibile nessuna area, </label></br>
-			<label>riprova con altri giorni</label>';
+		$result = 	'
+
+					<div class="form_prenotaz" style="padding-bottom:0px;">
+						<h1 style="background:red; color:#ffffff !important;">Spiacenti, per il '. $formatdate .'  non è disponibile nessuna area, seleziona un&rsquo;altra giornata.</h1>
+					</div>
+					';
 		$result = $result .
 			 getNavButtons(true, false);
 	}
@@ -393,7 +523,11 @@ function get_services ($area) {
 	$areaInfo = getAreaInfo($area);
 
 	if ( $areaInfo->tipologia == 1 )
-		$result ='<label>Seleziona il numero di partecipanti per tipologia di cena</label>';
+		$result =
+				'
+				<div class="form_prenotaz" style="padding-bottom:0px;">
+				<h1>Seleziona il numero di partecipanti per tipologia di cena</h1>
+				';
 	else
 		$result ='<label>Seleziona il numero di partecipanti</label>';
 	
@@ -529,8 +663,8 @@ function paypalbtn($totale)
 	$current_url= substr($_SESSION['url'],0, strrpos($_SESSION['url'], "/")+1);
 
 		
-	$returnurl =  $current_url.'?sid='.$session;
-	$cancelurl =  $current_url.'?sid=0';
+	$returnurl =  $current_url . '?sid=' . $session;
+	$cancelurl =  $current_url;
 
 	$output .= "<form target='' action='https://www.".$path.".com/cgi-bin/webscr' method='post'>";
 	$output .= "<input type='hidden' name='cmd' value='_xclick' />";
@@ -540,9 +674,10 @@ function paypalbtn($totale)
 	$output .= "<input type='hidden' name='amount' value='". $totale ."' />";
 	$output .= "<input type='hidden' name='lc' value='it_IT'>";
 	$output .= "<input type='hidden' name='no_note' value=''>";
+	$output .= "<input type='hidden' name='custom' value='" . $session . "'>";	
 	$output .= "<input type='hidden' name='paymentaction' value='".$paymentaction."'>";
-	$output .= "<input type='hidden' name='return' value='' />";
-	$output .= "<input type='hidden' name='notify_url' value='". $returnurl ."' />";
+	$output .= "<input type='hidden' name='return' value='". $returnurl ."' />";
+	$output .= "<input type='hidden' name='notify_url' value='http://www.marcotesselli.net/?AngellEYE_Paypal_Ipn_For_Wordpress&action=ipn_handler' />";
 	$output .= "<input type='hidden' name='bn' value='WPPlugin_SP'>";
 	$output .= "<input type='hidden' name='cancel_return' value='". $cancelurl ."' />";
 	$output .= "<input style='border: none;' class='paypalbuttonimage' type='image' src='https://www.paypalobjects.com/it_IT/IT/i/btn/btn_buynowCC_LG.gif' border='0' name='submit' alt='Paga con Paypal'>";
@@ -569,10 +704,18 @@ function getNavButtons($back, $next)
 	$result = '';
 
 	if ($back)
-		$result = $result . '<button onclick="indietroclick()">indietro</button>';	
+		$result = $result . '
+							<div class="form_prenotaz" style="background:rgba(255, 255, 255, 0); display:inline;">
+								<input style="background:rgba(255, 204, 51, 0.6); margin-top:55px; margin-bottom:25px;" type="submit" value="Indietro" onclick="indietroclick()">
+							</div>	
+							';	
 
 	if ($next)
-		$result = $result . '<button onclick="avanticlick()">avanti</button>';	
+		$result = $result . '
+							<div class="form_prenotaz" style="background:rgba(255, 255, 255, 0); margin-top:55px; margin-bottom:25px; display:inline;">
+								<input type="submit" value="Avanti" onclick="avanticlick()">
+							</div>	
+							';	
 
 	return $result;		
 }
@@ -665,6 +808,16 @@ function startsWith($haystack, $needle)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
+
+add_action("aao_paypal_confirm","aao_paypal_save");
+
+function aao_paypal_save() {
+	
+	$sid = $_POST['sid'];
+	
+	echo "isisi  ".sid;
+}
+ 
 // Admin
 
 // settings page menu link
