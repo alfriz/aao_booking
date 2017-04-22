@@ -84,6 +84,74 @@ function resetdatalayout()
 }
 
 
+function testDate(dateString)
+{
+
+ 	if(/^\d{4}([-])\d{2}\1\d{2}$/.test(dateString))
+ 		return dateString;
+ 
+	 if(!/^\d{2}([./-])\d{2}\1\d{4}$/.test(dateString))
+        return "";
+        
+    dateString= dateString.replace(/[./]/g, "-"); 
+        
+    var parts = dateString.split("-");
+    var day = parseInt(parts[0], 10);
+    var month = parseInt(parts[1], 10);
+    var year = parseInt(parts[2], 10);
+
+    // Check the ranges of month and year
+    if(year < 1000 || year > 3000 || month == 0 || month > 12)
+        return false;
+
+    var monthLength = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ];
+
+    // Adjust for leap years
+    if(year % 400 == 0 || (year % 100 != 0 && year % 4 == 0))
+        monthLength[1] = 29;
+
+    // Check the range of the day
+    var res =  day > 0 && day <= monthLength[month - 1];  
+    
+    if (res)
+     	return  "" + year + "-" + month + "-" + day; 
+
+}
+
+function testEmail(emailvalue)
+{
+    var emailFilter = /^([a-zA-Z0-9_.-])+@(([a-zA-Z0-9-])+.)+([a-zA-Z0-9]{2,4})+$/;
+    if (!emailFilter.test(emailvalue)) {
+        return false;
+    }
+
+    return true;
+
+}
+
+function testString(str)
+{
+    str = str.trim();
+    if (str.length==0) {
+        return false;
+    }
+
+    return true;
+
+}
+
+function testTel(telvalue)
+{
+    var telFilter = /^\d[0-9 ]+$/;
+     if (!telFilter.test(telvalue)) {
+        return false;
+    }
+
+    return true;
+
+} 
+
+
 
 function fdata(isavanti)
 {
@@ -95,9 +163,16 @@ function fdata(isavanti)
 	
 	if (index == 0)
 	{
-		if (jQuery("#date").val() !="")
-			data = jQuery('#dataora').serialize();
-		else{
+		if (jQuery("#date").val() !=""){
+			var date = testDate(jQuery("#date").val());
+			if (date!="")
+				data = "date="+date;
+			else{
+				errorCode = 1;
+				alert ("Formato data errato");
+			}
+			
+		}else{
 			errorCode = 1;
 			alert ("Selezionare una data");
 		}
@@ -134,11 +209,38 @@ function fdata(isavanti)
 	}
 	if (index == 3)
 	{
+		if ( !testString(jQuery("#name").val())  && isavanti)
+		{
+			errorCode = 1;
+			alert ("Inserire nome");
+		}
+	 
+		if (errorCode == 0 &&  !testString(jQuery("#surname").val()) && isavanti)
+		{
+			errorCode = 1;
+			alert ("Inserire cognome");
+		}
+				
+		var email = jQuery("#email").val();
+		if (errorCode == 0 && !testEmail(email) && isavanti)
+		{
+			errorCode = 1;
+			alert ("Formato email errato");
+		}
+		
+		var tel = jQuery("#tel").val();
+		if (errorCode == 0 && !testTel(tel)  && isavanti)
+		{
+			errorCode = 1;
+			alert ("Formato telefono errato");
+		}
+		
 		data = jQuery('#datiutente').serialize();
 	}
 	if (index == 4)
 	{
 		data = jQuery('#promocode').val();
+		
 	}
 	
 	return data;

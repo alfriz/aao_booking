@@ -1,5 +1,3 @@
-
-
 /* CSS form prenotazione */
 .form_prenotaz{
     font-family: "Open Sans Condensed", sans-serif;
@@ -91,4 +89,7 @@
 }
 #aree input[type="radio"] {
 	margin-right: 10px;
+}
+#servizi label {
+    width:50%;
 }

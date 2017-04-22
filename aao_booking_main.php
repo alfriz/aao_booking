@@ -259,19 +259,20 @@ function get_bookingdata()
 	if ($row != null)
 	{
 		$dates = date_create_from_format('Y-m-d', $row->day);
-		$date = date_format($dates, 'd-m-Y');
+		$date = date_format($dates, 'd/m/Y');
 	}
 	
 	
 	return '
 		<h4 style="padding-top:10px; padding-bottom:20px;">Utilizza il modulo sottostante per <strong>prenotare i tuoi posti a tavola</strong>.</h4>
- 		<div class="form_prenotaz">
-			<h1>Seleziona una data</h1>
 
-		<form id="dataora">
-		<input id="index" type="hidden" value="0"/>
-		<input type="date" id="date" name="date" placeholder="gg/mm/aaaa" value="'.$date.'"/>
-		</form>
+		<!-- Schermata 1 -->
+ 		<div class="form_prenotaz">
+			<h1><span style="color:#d39c04 !important;">Passo 1 di 5</span><br>Seleziona una data</h1>
+			<form id="dataora">
+				<input id="index" type="hidden" value="0"/>
+				<input type="date" id="date" name="date" placeholder="gg/mm/aaaa" value="'.$date.'"/>
+			</form>
 		</div>'
 		 . getNavButtons(false, true);
 
@@ -285,10 +286,6 @@ function get_areas ($date) {
 
 	if ($date == null && $row!=null){
 		$date = $row->day;		
-	}
-	else{
-		$dates = date_create_from_format('d-m-Y', $date);
-		$date = date_format($dates, 'Y-m-d');
 	}
 	
 	$defarea = 0;
@@ -324,14 +321,15 @@ function get_areas ($date) {
 	if ($wpdb->num_rows > 0)
 	{
 		$dates = date_create_from_format('Y-m-d', $date);
-		$formatdate = date_format($dates, 'd-m-Y');
-	
-		$result = '
-			<div class="form_prenotaz" style="padding-bottom:0px;">
-				<h1 style="background:green; color:#ffffff !important;">Il '. $formatdate .' sono disponibili queste aree:</h1>
+		$formatdate = date_format($dates, 'd/m/Y');
 
-			<form id="aree">
-			<input id="index" type="hidden" value="1"/>
+		$result = '
+			<!-- Schermata 2 -->
+			<div class="form_prenotaz" style="padding-bottom:0px;">
+				<h1 style="background:green; color:#ffffff !important;"><span style="color:#035903 !important;">Passo 2 di 5</span><br>Ecco le aree disponibili per il '. $formatdate .' .<br> Effettua una selezione e clicca AVANTI per proseguire.</h1>
+				<img src="http://www.dunlaoghaire.ie/wp-content/uploads/ECCO-Logo.jpg">
+				<form id="aree">
+					<input id="index" type="hidden" value="1"/>
 			';	
 	
 		foreach($areas as $key=>$row){
@@ -344,7 +342,7 @@ function get_areas ($date) {
 	else
 	{
 		$result = '	<div class="form_prenotaz" style="padding-bottom:0px;">
-						<h1 style="background:red; color:#ffffff !important;">Spiacenti, per il '. $formatdate .'  non è disponibile nessuna area, seleziona un&rsquo;altra giornata.</h1>
+						<h1 style="background:red; color:#ffffff !important;">2. Spiacenti, per il '. $formatdate .'  non è disponibile nessuna area, seleziona un&rsquo;altra giornata.</h1>
 					</div>';
 		$result = $result .
 			 getNavButtons(true, false);
@@ -365,14 +363,15 @@ function get_services ($area) {
 
 	if ( $areaInfo->tipologia == 1 )
 		$result ='
+				<!-- Schermata 3 -->
 				<div class="form_prenotaz" style="padding-bottom:0px;">
-				<h1>Seleziona il numero di partecipanti per tipologia di cena</h1>
+					<h1><span style="color:#d39c04 !important;">Passo 3 di 5</span><br>Seleziona il numero di partecipanti per tipologia di cena</h1>
 				';
 	else
-		$result ='<label>Seleziona il numero di partecipanti</label>';
+		$result ='<h1><span style="color:#d39c04 !important;">Passo 3 di 5</span><br>Seleziona il numero di partecipanti</h1>';
 	
-	$result = $result .'	<form id="servizi">
-		<input id="index" type="hidden" value="2"/>';
+	$result = $result .' <form id="servizi">
+							<input id="index" type="hidden" value="2"/>';
 	
 	
 	if ( $sessionrow !=null && $sessionrow->persons != null )
@@ -413,19 +412,21 @@ function get_user_data () {
 	if ( $sessionrow->userdata != null )
 		parse_str($sessionrow->userdata, $params);
 
-	$result = '<label>Compila i tuoi dati</label>
-	
-		<form id="datiutente">
-		<input id="index" type="hidden" value="3"/>
-		<label for"name">Nome</label>
-		<input id="name" name="name" value="'. ($params!=null?$params['name']:'') .'"></input></br> 
-		<label for"surname">Cognome</label>
-		<input id="surname" name="surname" value="'. ($params!=null?$params['surname']:'') .'"></input></br>
-		<label for"email">Email</label>
-		<input id="email" name="email" value="'. ($params!=null?$params['email']:'') .'"></input></br>
-		<label for"tel">Telefono</label>
-		<input id="tel" name="tel" value="'. ($params!=null?$params['tel']:'') .'"></input>
-		</form>'
+	$result = '
+				<!-- Schermata 4 -->
+ 				<div class="form_prenotaz">
+					<h1><span style="color:#d39c04 !important;">Passo 4 di 5</span><br>Inserisci i dati del referente</h1>
+					<form id="datiutente">
+						<input id="index" type="hidden" value="3"/>
+						<label for"name">Nome</label>
+						<input id="name" name="name" type="text" value="'. ($params!=null?$params['name']:'') .'"></input></br> 
+						<label for"surname">Cognome</label>
+						<input id="surname" name="surname" type="text" value="'. ($params!=null?$params['surname']:'') .'"></input></br>
+						<label for"email">Email</label>
+						<input id="email" name="email" type="email" value="'. ($params!=null?$params['email']:'') .'"></input></br>
+						<label for"tel">Telefono</label>
+						<input id="tel" name="tel" type="tel" value="'. ($params!=null?$params['tel']:'') .'"></input>
+					</form>'
 		 . getNavButtons(true, true);
 		
 	return $result;
@@ -438,23 +439,28 @@ function get_summary () {
 	$sessionrow = getExtededDataFromSession($session);
 
 	$result =' 	
-	<input id="index" type="hidden" value="4"/>
-	<label>Riepilogo</label><br/>';
+	<!-- Schermata 5 -->
+ 				<div class="form_prenotaz">
+					<h1><span style="color:#d39c04 !important;">Passo 5 di 5</span><br>Controlla i dettagli della prenotazione:</h1>
+					<input id="index" type="hidden" value="4"/>
+					<br/>';
 	
 	$totale = 0;
 	$result = $result .summarystring($sessionrow, $totale);
     
     $result = $result .'<label>Hai un codice promozionale?</label><br/>';
     
-    $result = $result .'<input id="promocode" name="promocode" value=""></input>';
+    $result = $result .'<input type="text" id="promocode" name="promocode" value="" style="width:50%; margin-bottom:15px !important;"></input>';
 		
-    $result = $result .'<button onclick="avanticlick()">Applica</button></br>';	
-    
-    $result = $result .'<button onclick="indietroclick()">indietro</button></br>';
-    
+    $result = $result .'<p><button onclick="avanticlick()">Applica</button></p></br>';	
+        
 	$result = $result 
 			 .paypalbtn($totale);
-		
+
+    $result = $result .'<div class="form_prenotaz" style="background:rgba(255, 255, 255, 0);">
+							<input style="background:rgba(255, 204, 51, 0.6); margin-top:85px; margin-bottom:25px;" type="submit" value="Indietro" onclick="indietroclick()">
+						</div>';
+
 	return $result;
 }
 
@@ -466,14 +472,14 @@ function summarystring($sessionrow, &$totale)
 	parse_str($sessionrow->persons, $persons);
 	
 	$dates = date_create_from_format('Y-m-d', $sessionrow->day);
-	$formatdate = date_format($dates, 'd-m-Y');
+	$formatdate = date_format($dates, 'd/m/Y');
 	
-	$result = $result . '<label>Giorno: ' . $formatdate .'</label><br/>';
-	$result = $result . '<label>Nome: ' . $userdata['name'] .'</label><br/>
-		<label>Cognome:'. $userdata['surname'] .' </label><br/>
-		<label>Email: '. $userdata['email'] .'</label><br/>
-		<label>Telefono: '. $userdata['tel'] .'</label><br/>
-		<label>Area: '. $sessionrow->adesc .'</label><br/>';
+	$result = $result . '<label><span style="font-weight:300 !important;">Giorno:</span> ' . $formatdate .'</label><br/>';
+	$result = $result . '<label style="margin-bottom:50px;"><span style="font-weight:300 !important;">Area:</span> '. $sessionrow->adesc .'</label><br/>
+		<label><span style="font-weight:300 !important;">Nome:</span> ' . $userdata['name'] .'</label><br/>
+		<label><span style="font-weight:300 !important;">Cognome:</span>'. $userdata['surname'] .' </label><br/>
+		<label><span style="font-weight:300 !important;">Email:</span> '. $userdata['email'] .'</label><br/>
+		<label style="margin-bottom:50px;"><span style="font-weight:300 !important;">Telefono:</span> '. $userdata['tel'] .'</label><br/>';  
 		
 	$totale = 0;
 	foreach ($persons as $key => $value) {
@@ -483,13 +489,13 @@ function summarystring($sessionrow, &$totale)
 			$serviceid = substr($key, -2);
 			$serviceinfo = getServiceInfo($serviceid);
 			$prezzo = ($serviceinfo->prezzo * $value);
-			$result = $result . '<label>' . $serviceinfo->description .': '.  $value .' - '. $prezzo .'€ </label><br/>';
+			$result = $result . '<label><span style="font-weight:300 !important; margin-bottom:30px;">' . $serviceinfo->description .' - </span>'.  $value .' persone - '. $prezzo .'€ </label><br/>';
 			$totale = $totale + $prezzo;
 			
 		}
 	}
 	
-	$result = $result .'<label>Totale '. $totale .'€ </label><br/>';
+	$result = $result .'<label style="margin-bottom:50px; font-size:2em;">Totale '. $totale .'€ </label><br/>';
 	
 	return $result;
 }
@@ -554,10 +560,14 @@ function paypalbtn($totale)
 
 function get_bookingsaved () {
 
-	$result =' 	
-		<label>Prenotazione completata!</label><br/>
-		<label>A breve riceverete una mail di conferma</label><br/>
-		<label>Grazie</label><br/>';
+	$result =	' 	
+				<!-- Schermata 6 -->
+ 				<div class="form_prenotaz">
+					<h1 style="background:green; color:#ffffff !important;">Prenotazione completata!</h1>
+					<label>A breve riceverete una mail di conferma</label><br/>
+					<label>Grazie!</label>
+				</div>
+				';
 	
 	return $result;
 }
@@ -741,7 +751,7 @@ function updateDateTime($date)
 		global $wpdb;
 		$session = $_SESSION['sessionId'];
 	
-		$dates = date_create_from_format('d-m-Y', $date);
+		$dates = date_create_from_format('Y-m-d', $date);
 		
 		$row = getDataFromSession();
 			
@@ -944,7 +954,7 @@ function my_wp_ajax_noob_aao_booking_delete_ajax_callback(){
 			parse_str($sessionrow->persons, $persons);
 	
 			$dates = date_create_from_format('Y-m-d', $sessionrow->day);
-			$formatdate = date_format($dates, 'd-m-Y');
+			$formatdate = date_format($dates, 'd/m/Y');
 	
 			$result = $result . '<br/><label>Giorno: ' . $formatdate .'</label><br/>';
 			$result = $result . '<label>Nome: ' . $userdata['name'] .'</label><br/>
@@ -987,7 +997,7 @@ function getSearchData($inputdata)
 	
 	parse_str($inputdata, $params);
 	
-	$dates = date_create_from_format('d-m-Y', $params['date']);
+	$dates = date_create_from_format('d/m/Y', $params['date']);
 	
 	$temp = $wpdb->get_row(
 		"SELECT * , a.description AS adesc, t.id as pid
