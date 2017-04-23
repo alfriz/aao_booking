@@ -43,7 +43,7 @@ function searchclick()
 	jQuery.ajax({ 
 			type: 'POST', 
 			url: aao_booking_ajax_url, 
-			data: { action: 'aao_booking_search',  issearch: 1, inputdata:jQuery('#search-booking').serialize()}, 
+			data: { action: 'aao_booking_search',  issearch: 1, inputdata:sdata(), errorcode:errorCode}, 
 			success: function(data, textStatus, XMLHttpRequest){
 				jQuery("#containerpage").html(''); 
 				jQuery("#containerpage").append(data); 
@@ -81,6 +81,8 @@ function resetdatalayout()
 	jQuery('.dateclass').datepicker({
     	dateFormat: 'dd-mm-yy'
     });
+    
+    window.scrollTo(0, 0);
 }
 
 
@@ -101,8 +103,8 @@ function testDate(dateString)
     var year = parseInt(parts[2], 10);
 
     // Check the ranges of month and year
-    if(year < 1000 || year > 3000 || month == 0 || month > 12)
-        return false;
+    if(year < 2015 || year > 2100 || month == 0 || month > 12)
+        return "1";
 
     var monthLength = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ];
 
@@ -112,10 +114,17 @@ function testDate(dateString)
 
     // Check the range of the day
     var res =  day > 0 && day <= monthLength[month - 1];  
-    
-    if (res)
-     	return  "" + year + "-" + month + "-" + day; 
+	if (!res)    
+    	return "1";
+    else
+     	return  "" + year + "-" + pad(month,2) + "-" + pad(day,2); 
 
+}
+
+function pad(n, width, z) {
+  z = z || '0';
+  n = n + '';
+  return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
 
 function testEmail(emailvalue)
@@ -151,7 +160,27 @@ function testTel(telvalue)
 
 } 
 
+function sdata()
+{
 
+	if (jQuery("#date").val() !=""){
+		var date = testDate(jQuery("#date").val());
+		if (date!="" && date!="1")
+			data = "date="+date;
+		else{
+			errorCode = 1;
+			if (date=="1")
+				alert ("Data fuori limiti");
+			else
+				alert ("Formato data errato");
+		}
+	}else{
+		errorCode = 1;
+		alert ("Selezionare una data");
+	}
+	
+	return jQuery('#search-booking').serialize();
+}
 
 function fdata(isavanti)
 {
@@ -165,11 +194,31 @@ function fdata(isavanti)
 	{
 		if (jQuery("#date").val() !=""){
 			var date = testDate(jQuery("#date").val());
-			if (date!="")
-				data = "date="+date;
+			var start = testDate(jQuery("#startdate").val());
+			var stop = testDate(jQuery("#stopdate").val());
+			var datestart = null
+			 if (start!="" && start!="1")
+				datestart = new Date(start);
+			var datestop = null
+			 if (stop!="" && stop!="1")
+				datestop = new Date(stop);
+			if (date!="" && date!="1")
+			{
+				var dateobj = new Date(date);
+				if ((datestart!=null && dateobj.getTime() < datestart.getTime()) || (datestop!=null && dateobj.getTime() > datestop.getTime()))
+				{
+					errorCode = 1;
+					alert ("Le aree sono disponibili dal " + jQuery("#startdate").val() + " al " + jQuery("#stopdate").val());
+				}
+				else
+					data = "date="+date;
+			}
 			else{
 				errorCode = 1;
-				alert ("Formato data errato");
+				if (date=="1")
+					alert ("Data fuori limiti");
+				else
+					alert ("Formato data errato");
 			}
 			
 		}else{

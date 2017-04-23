@@ -262,6 +262,11 @@ function get_bookingdata()
 		$date = date_format($dates, 'd/m/Y');
 	}
 	
+	$options = get_option('aao_booking_settingsoptions');
+	foreach ($options as $k => $v ) { $value[$k] = $v; }
+	$startdate = $value['startdate'];
+	$stopdate = $value['stopdate'];
+	
 	
 	return '
 		<h4 style="padding-top:10px; padding-bottom:20px;">Utilizza il modulo sottostante per <strong>prenotare i tuoi posti a tavola</strong>.</h4>
@@ -271,12 +276,15 @@ function get_bookingdata()
 			<h1><span style="color:#d39c04 !important;">Passo 1 di 5</span><br>Seleziona una data</h1>
 			<form id="dataora">
 				<input id="index" type="hidden" value="0"/>
+				<input id="startdate" type="hidden" value="'.$startdate.'"/>
+				<input id="stopdate" type="hidden" value="'.$stopdate.'"/>
 				<input type="date" id="date" name="date" placeholder="gg/mm/aaaa" value="'.$date.'"/>
 			</form>
 		</div>'
 		 . getNavButtons(false, true);
 
 }
+
 
 function get_areas ($date) {
 
@@ -327,16 +335,22 @@ function get_areas ($date) {
 			<!-- Schermata 2 -->
 			<div class="form_prenotaz" style="padding-bottom:0px;">
 				<h1 style="background:green; color:#ffffff !important;"><span style="color:#035903 !important;">Passo 2 di 5</span><br>Ecco le aree disponibili per il '. $formatdate .' .<br> Effettua una selezione e clicca AVANTI per proseguire.</h1>
-				<img src="http://www.dunlaoghaire.ie/wp-content/uploads/ECCO-Logo.jpg">
+
 				<form id="aree">
+
 					<input id="index" type="hidden" value="1"/>
 			';	
 	
 		foreach($areas as $key=>$row){
-			$result = $result . "<input type='radio' name='area' value='". $row->id ."' " .  ($row->id==$defarea? "checked":"" )   . ">".$row->description. "</br>";
+			$result = $result . "<input type='radio' name='area' value='". $row->id ."' " .  ($row->id==$defarea? "checked":"" )   . ">".$row->description. " (".$row->min. ", " .$row->max. ")</br>";
 		}
 	
-		$result = $result . '</form> </div>'
+		$result = $result . '
+								</form>
+							</div>
+							<iframe style="width: 100%; height: 450px;" src="https://www.google.com/maps/d/embed?mid=1Noz_M-FwPSXDzX2U03SRpGDT9wU&z=18" width="640" height="480">
+							</iframe>
+							'
 			 . getNavButtons(true, true);
 	}		 
 	else
@@ -448,17 +462,18 @@ function get_summary () {
 	$totale = 0;
 	$result = $result .summarystring($sessionrow, $totale);
     
-    $result = $result .'<label>Hai un codice promozionale?</label><br/>';
+	$result = $result 
+			 .paypalbtn($totale);    
+
+    $result = $result .'<label style="margin-top:70px;">Hai un codice promozionale?</label><br/>';
     
     $result = $result .'<input type="text" id="promocode" name="promocode" value="" style="width:50%; margin-bottom:15px !important;"></input>';
 		
     $result = $result .'<p><button onclick="avanticlick()">Applica</button></p></br>';	
         
-	$result = $result 
-			 .paypalbtn($totale);
 
     $result = $result .'<div class="form_prenotaz" style="background:rgba(255, 255, 255, 0);">
-							<input style="background:rgba(255, 204, 51, 0.6); margin-top:85px; margin-bottom:25px;" type="submit" value="Indietro" onclick="indietroclick()">
+							<input style="background:rgba(255, 204, 51, 0.6); margin-top:10px; margin-bottom:25px;" type="submit" value="Indietro" onclick="indietroclick()">
 						</div>';
 
 	return $result;
@@ -474,12 +489,27 @@ function summarystring($sessionrow, &$totale)
 	$dates = date_create_from_format('Y-m-d', $sessionrow->day);
 	$formatdate = date_format($dates, 'd/m/Y');
 	
-	$result = $result . '<label><span style="font-weight:300 !important;">Giorno:</span> ' . $formatdate .'</label><br/>';
-	$result = $result . '<label style="margin-bottom:50px;"><span style="font-weight:300 !important;">Area:</span> '. $sessionrow->adesc .'</label><br/>
-		<label><span style="font-weight:300 !important;">Nome:</span> ' . $userdata['name'] .'</label><br/>
-		<label><span style="font-weight:300 !important;">Cognome:</span>'. $userdata['surname'] .' </label><br/>
-		<label><span style="font-weight:300 !important;">Email:</span> '. $userdata['email'] .'</label><br/>
-		<label style="margin-bottom:50px;"><span style="font-weight:300 !important;">Telefono:</span> '. $userdata['tel'] .'</label><br/>';  
+	$result = $result . '
+						
+						<ul class="lista_riep_dett_prenot">
+						<h3>Data e posizione:</h3>
+							<li>Giorno: ' . $formatdate .'</li>
+						';
+	
+	$result = $result . '
+							<li>Area: '. $sessionrow->adesc .'</li>
+						</ul>						
+
+						<ul class="lista_riep_dett_prenot">
+						<h3>Persona di riferimento per la prenotazione:</h3>						
+							<li>Nome: ' . $userdata['name'] .'</li>
+							<li>Cognome: '. $userdata['surname'] .' </li>
+							<li>Email: '. $userdata['email'] .'</li>
+							<li>Telefono: '. $userdata['tel'] .'</li>
+						</ul>
+						<ul class="lista_riep_dett_prenot">
+							<h3>Persone per tipologia di cena:</h3>
+						';  
 		
 	$totale = 0;
 	foreach ($persons as $key => $value) {
@@ -489,13 +519,15 @@ function summarystring($sessionrow, &$totale)
 			$serviceid = substr($key, -2);
 			$serviceinfo = getServiceInfo($serviceid);
 			$prezzo = ($serviceinfo->prezzo * $value);
-			$result = $result . '<label><span style="font-weight:300 !important; margin-bottom:30px;">' . $serviceinfo->description .' - </span>'.  $value .' persone - '. $prezzo .'€ </label><br/>';
+			$result = $result . '<li><span style="font-weight:300 !important; margin-bottom:30px;">' . $serviceinfo->description .' - </span> <strong>'.  $value .' persone</strong> - Subtotale '. $prezzo .'€ </li>';
 			$totale = $totale + $prezzo;
 			
 		}
 	}
 	
-	$result = $result .'<label style="margin-bottom:50px; font-size:2em;">Totale '. $totale .'€ </label><br/>';
+	$result = $result .'</ul>';
+
+	$result = $result .'<h3 style="margin-top:20px; margin-bottom:10px; font-weight:700; font-size:2em;">Totale '. $totale .'€ </h3>';
 	
 	return $result;
 }
@@ -563,10 +595,20 @@ function get_bookingsaved () {
 	$result =	' 	
 				<!-- Schermata 6 -->
  				<div class="form_prenotaz">
-					<h1 style="background:green; color:#ffffff !important;">Prenotazione completata!</h1>
-					<label>A breve riceverete una mail di conferma</label><br/>
-					<label>Grazie!</label>
+					<h1 style="background:green; color:#ffffff !important;">
+						<div>
+							<img src="/wp-content/uploads/_img_layout/success.png">
+						</div>
+						Prenotazione completata!
+					</h1>
+					<label>A breve riceverai una mail di conferma</label><br/>
+					<label>Grazie!</label><br>
 				</div>
+				<div class="form_prenotaz" style="background:rgba(247, 247, 247, 0)">
+					<a href="/home/">
+						<input type="submit" value="Esci">
+					</a>
+				</div>	
 				';
 	
 	return $result;
@@ -641,6 +683,8 @@ function aao_booking_plugin_options() {
 		$options['gemailnotifybody'] = 		$_POST['gemailnotifybody'];
 		$options['gemailnotifysubject'] = 	$_POST['gemailnotifysubject'];
 		$options['backdoorpc'] = 			$_POST['backdoorpc'];
+		$options['startdate'] = 			$_POST['startdate'];
+		$options['stopdate'] = 				$_POST['stopdate'];
 
 		update_option("aao_booking_settingsoptions", $options);
 
@@ -709,6 +753,8 @@ function aao_booking_plugin_options() {
 	echo "<br /><b>Galassi Notify Email body: </b><input type='text' name='gemailnotifybody' value='".$value['gemailnotifybody']."'> Required";
 	
 	echo "<br /><b>Backdoor promotion code: </b><input type='text' name='backdoorpc' value='".$value['backdoorpc']."'> Required";
+	echo "<br /><br /><b>Booking Start date: </b><input type='date' name='startdate' value='".$value['startdate']."'>";
+	echo "<br /><b>Booking Stop date: </b><input type='date' name='stopdate' value='".$value['stopdate']."'> ";
 
 	echo "<br /><br /></div>";
 
@@ -941,32 +987,35 @@ function my_wp_ajax_noob_aao_booking_delete_ajax_callback(){
 //get data from the ajax() call 
 	$issearch = $_POST['issearch'];
 	$inputdata = $_POST['inputdata'];
-	
+	$errorcode = $_POST['errorcode'];
+
 	$result = get_bookingdelete();
 	if ($issearch)
 	{
-		$sessionrow = getSearchData($inputdata);
+		if ($errorcode== 0) {
+			$sessionrow = getSearchData($inputdata);
 		
-		if ($sessionrow !=null)
-		{
+			if ($sessionrow !=null)
+			{
 
-			parse_str($sessionrow->userdata, $userdata);
-			parse_str($sessionrow->persons, $persons);
+				parse_str($sessionrow->userdata, $userdata);
+				parse_str($sessionrow->persons, $persons);
 	
-			$dates = date_create_from_format('Y-m-d', $sessionrow->day);
-			$formatdate = date_format($dates, 'd/m/Y');
+				$dates = date_create_from_format('Y-m-d', $sessionrow->day);
+				$formatdate = date_format($dates, 'd/m/Y');
 	
-			$result = $result . '<br/><label>Giorno: ' . $formatdate .'</label><br/>';
-			$result = $result . '<label>Nome: ' . $userdata['name'] .'</label><br/>
-			<label>Cognome:'. $userdata['surname'] .' </label><br/>
-			<label>Email: '. $userdata['email'] .'</label><br/>
-			<label>Telefono: '. $userdata['tel'] .'</label><br/>
-			<label>Area: '. $sessionrow->adesc .'</label><br/>';
-			$result = $result . '<button onclick="deleteclick('. $sessionrow->pid .')">Elimina</button>';
-		}
-		else
-		{
-			$result = $result . '<br/><label>Nessuna prenotazione </label><br/>' ;
+				$result = $result . '<br/><label>Giorno: ' . $formatdate .'</label><br/>';
+				$result = $result . '<label>Nome: ' . $userdata['name'] .'</label><br/>
+				<label>Cognome:'. $userdata['surname'] .' </label><br/>
+				<label>Email: '. $userdata['email'] .'</label><br/>
+				<label>Telefono: '. $userdata['tel'] .'</label><br/>
+				<label>Area: '. $sessionrow->adesc .'</label><br/>';
+				$result = $result . '<button onclick="deleteclick('. $sessionrow->pid .')">Elimina</button>';
+			}
+			else
+			{
+				$result = $result . '<br/><label>Nessuna prenotazione </label><br/>' ;
+			}
 		}
 	}
 	else
@@ -1031,7 +1080,7 @@ function get_bookingdelete()
     $result = $result . '
  		<label>Selezionare una data e un\'area da ricercare</label>
 		<form id="search-booking">                	
-		<input id="date" name="date" class="dateclass" value="'.$date.'"/>';
+		<input id="date" name="date" type="date" placeholder="gg/mm/aaaa" value="'.$date.'"/>';
 
 	$result = $result .'<select name ="area">';
 

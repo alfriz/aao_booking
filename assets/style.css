@@ -93,3 +93,8 @@
 #servizi label {
     width:50%;
 }
+
+/* CSS riepilogo dettagli prenotazione */
+.lista_riep_dett_prenot {line-height: 2em; margin-bottom:50px; list-style-type: none;} 
+.lista_riep_dett_prenot h3 {margin-bottom:10px; font-weight: 700;}
+
