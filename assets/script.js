@@ -89,11 +89,12 @@ function resetdatalayout()
 function testDate(dateString)
 {
 
+	var reverse = false;
  	if(/^\d{4}([-])\d{2}\1\d{2}$/.test(dateString))
- 		return dateString;
- 
-	 if(!/^\d{2}([./-])\d{2}\1\d{4}$/.test(dateString))
-        return "";
+ 		reverse = true;
+ 	else
+	 	if(!/^\d{2}([./-])\d{2}\1\d{4}$/.test(dateString))
+        	return "";
         
     dateString= dateString.replace(/[./]/g, "-"); 
         
@@ -101,7 +102,14 @@ function testDate(dateString)
     var day = parseInt(parts[0], 10);
     var month = parseInt(parts[1], 10);
     var year = parseInt(parts[2], 10);
-
+    
+    if (reverse)
+	{
+		day = parseInt(parts[2], 10);
+    	month = parseInt(parts[1], 10);
+	    year = parseInt(parts[0], 10);
+	}
+	
     // Check the ranges of month and year
     if(year < 2015 || year > 2100 || month == 0 || month > 12)
         return "1";
@@ -179,7 +187,7 @@ function sdata()
 		alert ("Selezionare una data");
 	}
 	
-	return jQuery('#search-booking').serialize();
+	return  "area=" + jQuery("#area").val()+ "&" + data;
 }
 
 function fdata(isavanti)

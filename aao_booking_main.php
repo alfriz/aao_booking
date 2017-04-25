@@ -342,7 +342,7 @@ function get_areas ($date) {
 			';	
 	
 		foreach($areas as $key=>$row){
-			$result = $result . "<input type='radio' name='area' value='". $row->id ."' " .  ($row->id==$defarea? "checked":"" )   . ">".$row->description. " (".$row->min. ", " .$row->max. ")</br>";
+			$result = $result . "<input type='radio' name='area' value='". $row->id ."' " .  ($row->id==$defarea? "checked":"" )   . ">".$row->description. " (Capacità: min ".$row->min. ", max "  .$row->max. " persone)</br>";
 		}
 	
 		$result = $result . '
@@ -984,7 +984,6 @@ add_action( 'wp_ajax_nopriv_aao_booking_delete', 'my_wp_ajax_noob_aao_booking_de
 
 
 function my_wp_ajax_noob_aao_booking_delete_ajax_callback(){
-//get data from the ajax() call 
 	$issearch = $_POST['issearch'];
 	$inputdata = $_POST['inputdata'];
 	$errorcode = $_POST['errorcode'];
@@ -1046,13 +1045,14 @@ function getSearchData($inputdata)
 	
 	parse_str($inputdata, $params);
 	
-	$dates = date_create_from_format('d/m/Y', $params['date']);
+	$dates = $params['date'];
 	
-	$temp = $wpdb->get_row(
-		"SELECT * , a.description AS adesc, t.id as pid
+	$sql = "SELECT * , a.description AS adesc, t.id as pid
 			FROM  `wp_aao_bkg_bookings` AS t
 			LEFT JOIN wp_aao_bkg_areas AS a ON t.areaid = a.id
-			WHERE	t.areaid = " . $params['area'] . " AND t.day ='" . date_format($dates, 'Y-m-d') .  "'"  ); 
+			WHERE	t.areaid = " . $params['area'] . " AND t.day ='" . $dates .  "'";
+	$temp = $wpdb->get_row(
+		$sql ); 
 	
 	return $temp;
 }
@@ -1082,7 +1082,7 @@ function get_bookingdelete()
 		<form id="search-booking">                	
 		<input id="date" name="date" type="date" placeholder="gg/mm/aaaa" value="'.$date.'"/>';
 
-	$result = $result .'<select name ="area">';
+	$result = $result .'<select id="area" name ="area">';
 
 	foreach($areas as $key=>$row){
       $result = $result . "<option value='".$row->id."'>".$row->description."</option>";
