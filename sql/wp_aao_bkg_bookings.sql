@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS `wp_aao_bkg_bookings` (
   `areaId` mediumint(9) DEFAULT NULL,
   `persons` text NOT NULL,
   `userdata` text NOT NULL,
+  `paymentmode` text NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=6 ;

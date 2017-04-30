@@ -75,12 +75,26 @@ function wp_ajax_noob_aao_booking_shortcode_callbacks(){
 	if(!isset($_SESSION['url'])) 
 		$_SESSION['url']  = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 	
+	
+	$res = manageparam();
+	
 	if ($res!=null)	
 		return $res;
 	else
 
 		return '<div id="containerpage">'. get_bookingdata(). '</div>';
 }
+
+function manageparam()
+{
+	$res = get_query_var( 'sid', '0' );
+	
+	$res = intval ($res);
+	if ($res == '0')
+		return null;
+	else
+		return get_bookingsaved();
+}	
 
 
 
@@ -531,7 +545,7 @@ function summarystring($sessionrow, $paymentmode, &$totale)
 	
 	if ($paymentmode!=null)
 	{
-		$result = $result . '<div style="margin-top:20px;">Metodo di pagamento: <span style="font-weight:300>'. $paymentmode.'</span></div>';
+		$result = $result . '<div style="margin-top:20px;">Metodo di pagamento: <strong>'. $paymentmode.'</strong></div>';
 	}
 	
 	return $result;
@@ -569,8 +583,8 @@ function paypalbtn($totale)
 	$current_url= substr($_SESSION['url'],0, strrpos($_SESSION['url'], "/")+1);
 
 		
-	$returnurl =  $current_url;
-	$cancelurl =  $current_url;
+	$returnurl =  $current_url.'?sid=1';
+	$cancelurl =  $current_url.'?sid=0';
 
 	$output .= "<form target='' action='https://www.".$path.".com/cgi-bin/webscr' method='post'>";
 	$output .= "<input type='hidden' name='cmd' value='_xclick' />";
