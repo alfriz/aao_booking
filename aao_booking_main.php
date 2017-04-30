@@ -334,7 +334,7 @@ function get_areas ($date) {
 		$result = '
 			<!-- Schermata 2 -->
 			<div class="form_prenotaz" style="padding-bottom:0px;">
-				<h1 style="background:green; color:#ffffff !important;"><span style="color:#035903 !important;">Passo 2 di 5</span><br>Ecco le aree disponibili per il '. $formatdate .' .<br> Effettua una selezione e clicca AVANTI per proseguire.</h1>
+				<h1 style="background:green; color:#ffffff !important;"><span style="color:#035903 !important;">Passo 2 di 5</span><br>Ecco le aree disponibili per il '. $formatdate .'.<br> Effettua una selezione e clicca AVANTI per proseguire.</h1>
 
 				<form id="aree">
 
@@ -460,7 +460,7 @@ function get_summary () {
 					<br/>';
 	
 	$totale = 0;
-	$result = $result .summarystring($sessionrow, $totale);
+	$result = $result .summarystring($sessionrow, null, $totale);
     
 	$result = $result 
 			 .paypalbtn($totale);    
@@ -479,7 +479,7 @@ function get_summary () {
 	return $result;
 }
 
-function summarystring($sessionrow, &$totale)
+function summarystring($sessionrow, $paymentmode, &$totale)
 {
 
 	$result ='';
@@ -528,6 +528,11 @@ function summarystring($sessionrow, &$totale)
 	$result = $result .'</ul>';
 
 	$result = $result .'<h3 style="margin-top:20px; margin-bottom:10px; font-weight:700; font-size:2em;">Totale '. $totale .'€ </h3>';
+	
+	if ($paymentmode!=null)
+	{
+		$result = $result . '<div style="margin-top:20px;">Metodo di pagamento: <span style="font-weight:300>'. $paymentmode.'</span></div>';
+	}
 	
 	return $result;
 }
@@ -848,24 +853,37 @@ function saveBooking($sessionInfo)
 {
 	global $wpdb;
 
-	if ($sessionInfo==null)
+	if ($sessionInfo==null){
 		$row = getDataFromSession();
+	}
 	else
 		$row = $sessionInfo;
 		 
 	$wpdb->query( 'INSERT INTO wp_aao_bkg_bookings
-					(dayOfRegistration, day, areaId, persons, userdata) 
-					VALUES ("'. date('Y-m-d') .'","'.$row->day.'",'.$row->areaId .',"'.$row->persons.'","'.$row->userdata.'")' );
+					(dayOfRegistration, day, areaId, persons, userdata, paymentmode) 
+					VALUES ("'. date('Y-m-d') .'","'.$row->day.'",'.$row->areaId .',"'.$row->persons.'","'.$row->userdata.'","'.getPaymentMode($sessionInfo).'")' );
 
 	deleteSession($row->session);
+}
+
+function getPaymentMode($session)
+{
+	$paymentmode ="Paypal";
+
+	if ($session==null)
+		$paymentmode ="Admin";
+		
+	return $paymentmode;
 }
 
 function sendMails($session)
 {
 
+	$paymentmode = getPaymentMode($session);
+	
 	if ($session==null)
 		$session = $_SESSION['sessionId'];
-		
+
 	$options = get_option('aao_booking_settingsoptions');
 	foreach ($options as $k => $v ) { $value[$k] = $v; }
 
@@ -883,7 +901,7 @@ function sendMails($session)
 	
 	$to = $value['emailnotify'];
 	$subject = $value['gemailnotifysubject'];
-	$message = $value['gemailnotifybody']. summarystring($sessionrow);
+	$message = $value['gemailnotifybody']. summarystring($sessionrow, $paymentmode);
 
 	wp_mail( $to, $subject, $message );
 	
@@ -1078,11 +1096,13 @@ function get_bookingdelete()
 	$areas = $wpdb->get_results( $sql ); 
                     
     $result = $result . '
- 		<label>Selezionare una data e un\'area da ricercare</label>
-		<form id="search-booking">                	
-		<input id="date" name="date" type="date" placeholder="gg/mm/aaaa" value="'.$date.'"/>';
+    					<!-- Schermata PRENOTAZIONI ADMIN -->
+ 						<div class="form_prenotaz">
+							<h1><span style="color:#d39c04 !important;">AMMINISTRAZIONE PRENOTAZIONI</span><br>Selezionare una data e un\'area da ricercare</h1>
+							<form id="search-booking"> 
+		               		<input id="date" name="date" type="date" placeholder="gg/mm/aaaa" value="'.$date.'"/>';
 
-	$result = $result .'<select id="area" name ="area">';
+	$result = $result .'<select style="text-align:center;" id="area" name ="area">';
 
 	foreach($areas as $key=>$row){
       $result = $result . "<option value='".$row->id."'>".$row->description."</option>";
@@ -1091,7 +1111,9 @@ function get_bookingdelete()
 
 	$result = $result .	'</form>';
 	
-	$result = $result . '<button onclick="searchclick()">Cerca</button>';	
+	$result = $result . '<input style="margin-top:20px;" onclick="searchclick()" type="submit" value="Cerca">';	
+
+	$result = $result .	'</div>';	
 	
 	return $result;
 
