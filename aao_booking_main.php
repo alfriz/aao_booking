@@ -365,7 +365,7 @@ function get_areas ($date) {
 		foreach($areas as $key=>$row){
 			if ($row->areatype !=$areahead)
 			{
-				$result = $result . '<label style="color:green !important;">'.$row->areatype.'</label></br>';
+				$result = $result . '<label style="color:green !important;font-size: 130%; font-weight: 700;">'.$row->areatype.'</label></br>';
 				$areahead = $row->areatype;
 			} 
 		
