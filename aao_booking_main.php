@@ -315,12 +315,16 @@ function get_areas ($date) {
 	{
 		$defarea =  $row->areaId;
 	}			
+	
+	
+	
 	global $wpdb;
 	
 	$sql = "
-		SELECT a.*
+		SELECT a.*, t.description as areatype
 		FROM  `wp_aao_bkg_areas` AS a
 		
+			LEFT JOIN `wp_aao_bkg_area_types` as t on a.tipologia = t.id
 			LEFT OUTER JOIN (
 				SELECT * 
 				FROM wp_aao_bkg_bookings
@@ -336,11 +340,12 @@ function get_areas ($date) {
 			ON a.id = t.areaid
 
 		WHERE b.areaid IS NULL AND t.areaid is NULL 
+		ORDER BY disporder ASC 
 	";
 
 	$areas = $wpdb->get_results( $wpdb->prepare( $sql ) ); 
 	
-	if ($wpdb->num_rows > 0)
+	if ($wpdb->num_rows > 0 && test_blackdate($date))
 	{
 		$dates = date_create_from_format('Y-m-d', $date);
 		$formatdate = date_format($dates, 'd/m/Y');
@@ -355,7 +360,15 @@ function get_areas ($date) {
 					<input id="index" type="hidden" value="1"/>
 			';	
 	
+	
+		$areadhead = "";	
 		foreach($areas as $key=>$row){
+			if ($row->areatype !=$areahead)
+			{
+				$result = $result . '<label style="color:green !important;">'.$row->areatype.'</label></br>';
+				$areahead = $row->areatype;
+			} 
+		
 			$result = $result . "<input type='radio' name='area' value='". $row->id ."' " .  ($row->id==$defarea? "checked":"" )   . ">".$row->description. " (Capacità: min ".$row->min. ", max "  .$row->max. " persone)</br>";
 		}
 	
@@ -377,6 +390,26 @@ function get_areas ($date) {
 	}
 	
 	return $result;
+}
+
+function test_blackdate($date)
+{
+	$options = get_option('aao_booking_settingsoptions');
+	foreach ($options as $k => $v ) { $value[$k] = $v; }
+	
+	$blackdate = $value['blackdate'];
+	
+	$blackdates = explode(',', $blackdate);
+	
+	$dates = date_create_from_format('Y-m-d', $date);
+	
+	foreach($blackdates as $bdate) {
+    	$dt = date_create_from_format('d/m/Y', $bdate);
+    	if ($dt == $dates)
+    		return false;
+	}
+	
+	return true;
 }
 
 function get_services ($area) {
@@ -412,7 +445,8 @@ function get_services ($area) {
 		"
 		SELECT      *
 		FROM        wp_aao_bkg_services
-		WHERE areaType=%d", $areaInfo->tipologia) ); 
+		WHERE areaType=%d 
+		ORDER BY disporder ASC", $areaInfo->tipologia) ); 
 	
 	$result = $result . '<input id="areadesc" type="hidden"  value="'. $areaInfo->description .'"/>';
 	$result = $result . '<input name="min" type="hidden"  value="'. $areaInfo->min .'"/>';
@@ -704,6 +738,7 @@ function aao_booking_plugin_options() {
 		$options['backdoorpc'] = 			$_POST['backdoorpc'];
 		$options['startdate'] = 			$_POST['startdate'];
 		$options['stopdate'] = 				$_POST['stopdate'];
+		$options['blackdate'] = 			$_POST['blackdate'];
 
 		update_option("aao_booking_settingsoptions", $options);
 
@@ -772,8 +807,9 @@ function aao_booking_plugin_options() {
 	echo "<br /><b>Galassi Notify Email body: </b><input type='text' name='gemailnotifybody' value='".$value['gemailnotifybody']."'> Required";
 	
 	echo "<br /><b>Backdoor promotion code: </b><input type='text' name='backdoorpc' value='".$value['backdoorpc']."'> Required";
-	echo "<br /><br /><b>Booking Start date: </b><input type='date' name='startdate' value='".$value['startdate']."'>";
+	echo "<br /><br/><b>Booking Start date: </b><input type='date' name='startdate' value='".$value['startdate']."'>";
 	echo "<br /><b>Booking Stop date: </b><input type='date' name='stopdate' value='".$value['stopdate']."'> ";
+	echo "<br /><b>Booking Blacklist date: </b><input type='date' name='blackdate' value='".$value['blackdate']."'> ";
 
 	echo "<br /><br /></div>";
 

@@ -26,16 +26,51 @@ SET time_zone = "+00:00";
 -- Struttura della tabella `wp_aao_bkg_areas`
 --
 
-CREATE TABLE IF NOT EXISTS `wp_aao_bkg_areas` (
-  `id` mediumint(9) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `wp_aao_bkg_areas` (
+  `id` mediumint(9) NOT NULL,
   `description` varchar(55) NOT NULL,
   `tipologia` int(11) DEFAULT NULL,
   `max` int(11) NOT NULL,
   `min` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=16 ;
+  `disporder` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+--
+-- Dump dei dati per la tabella `wp_aao_bkg_areas`
+--
+
+INSERT INTO `wp_aao_bkg_areas` (`id`, `description`, `tipologia`, `max`, `min`, `disporder`) VALUES
+(1, 'Gazebo 1', 1, 12, 5, 1),
+(2, 'Gazebo 2', 1, 12, 5, 2),
+(5, 'Gazebo 3', 1, 12, 5, 3),
+(6, 'Gazebo 4', 1, 8, 2, 4),
+(7, 'Gazebo 5', 1, 8, 2, 5),
+(8, 'Cubo', 1, 20, 8, 6),
+(9, 'Glicine', 1, 20, 8, 7),
+(10, 'Pioppi', 1, 20, 8, 8),
+(11, 'Querce', 1, 50, 20, 9),
+(12, 'Meli 1', 1, 10, 2, 10),
+(13, 'Meli 2', 1, 10, 2, 11),
+(14, 'Terrazza piccola', 2, 3, 2, 12),
+(15, 'Terrazza grande', 2, 8, 2, 13);
+
+--
+-- Indici per le tabelle scaricate
+--
+
+--
+-- Indici per le tabelle `wp_aao_bkg_areas`
+--
+ALTER TABLE `wp_aao_bkg_areas`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `id` (`id`);
+
+--
+-- AUTO_INCREMENT per le tabelle scaricate
+--
+
+--
+-- AUTO_INCREMENT per la tabella `wp_aao_bkg_areas`
+--
+ALTER TABLE `wp_aao_bkg_areas`
+  MODIFY `id` mediumint(9) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;

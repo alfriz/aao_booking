@@ -1,23 +1,17 @@
 -- phpMyAdmin SQL Dump
--- version 4.0.10.18
--- https://www.phpmyadmin.net
+-- version 4.6.6
+-- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generato il: Apr 09, 2017 alle 07:58
--- Versione del server: 5.6.28-76.1-log
--- Versione PHP: 5.6.30
+-- Creato il: Mag 06, 2017 alle 08:22
+-- Versione del server: 10.1.18-MariaDB-cll-lve
+-- Versione PHP: 5.6.14
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
-
 --
--- Database: `marcote4_galassi`
+-- Database: `h473859_g4l_db`
 --
 
 -- --------------------------------------------------------
@@ -26,15 +20,42 @@ SET time_zone = "+00:00";
 -- Struttura della tabella `wp_aao_bkg_services`
 --
 
-CREATE TABLE IF NOT EXISTS `wp_aao_bkg_services` (
-  `id` mediumint(9) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `wp_aao_bkg_services` (
+  `id` mediumint(9) NOT NULL,
   `description` varchar(55) NOT NULL,
   `areaType` mediumint(9) NOT NULL,
   `prezzo` float NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=15 ;
+  `disporder` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+--
+-- Dump dei dati per la tabella `wp_aao_bkg_services`
+--
+
+INSERT INTO `wp_aao_bkg_services` (`id`, `description`, `areaType`, `prezzo`, `disporder`) VALUES
+(15, 'Grigliata - 14€', 1, 14, 1),
+(16, 'Grigliata (bambino fino a 12 anni) - 10€', 1, 10, 2),
+(20, 'Pizza/picnic - 11€', 1, 11, 3),
+(21, 'Pizza/picnic (bambino fino a 12 anni) - 8€', 1, 8, 4),
+(22, 'Posto tavola in terrazza - Prezzo unico', 2, 23, 5);
+
+--
+-- Indici per le tabelle scaricate
+--
+
+--
+-- Indici per le tabelle `wp_aao_bkg_services`
+--
+ALTER TABLE `wp_aao_bkg_services`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `id` (`id`);
+
+--
+-- AUTO_INCREMENT per le tabelle scaricate
+--
+
+--
+-- AUTO_INCREMENT per la tabella `wp_aao_bkg_services`
+--
+ALTER TABLE `wp_aao_bkg_services`
+  MODIFY `id` mediumint(9) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
