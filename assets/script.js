@@ -205,18 +205,23 @@ function fdata(isavanti)
 			var start = testDate(jQuery("#startdate").val());
 			var stop = testDate(jQuery("#stopdate").val());
 			var datestart = null
-			 if (start!="" && start!="1")
+			if (start!="" && start!="1")
 				datestart = new Date(start);
 			var datestop = null
-			 if (stop!="" && stop!="1")
+			if (stop!="" && stop!="1")
 				datestop = new Date(stop);
+            
+			var invalidDateMsg = "Le aree sono disponibili dal " +jQuery("#startdate").val()+
+									" al " + 
+									jQuery("#stopdate").val();
+									
 			if (date!="" && date!="1")
 			{
 				var dateobj = new Date(date);
 				if ((datestart!=null && dateobj.getTime() < datestart.getTime()) || (datestop!=null && dateobj.getTime() > datestop.getTime()))
 				{
 					errorCode = 1;
-					alert ("Le aree sono disponibili dal " + jQuery("#startdate").val() + " al " + jQuery("#stopdate").val());
+					alert (invalidDateMsg);
 				}
 				else
 					data = "date="+date;
@@ -224,7 +229,7 @@ function fdata(isavanti)
 			else{
 				errorCode = 1;
 				if (date=="1")
-					alert ("Data fuori limiti");
+					alert (invalidDateMsg);
 				else
 					alert ("Formato data errato");
 			}
