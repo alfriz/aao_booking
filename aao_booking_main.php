@@ -283,11 +283,16 @@ function get_bookingdata()
 	
 	
 	return '
-		<h4 style="padding-top:10px; padding-bottom:20px;">Utilizza il modulo sottostante per <strong>prenotare i tuoi posti a tavola</strong>.</h4>
+		<h4>
+			La prenotazione è necessaria solamente per le cene, la sola visita del labirinto non richiede prenotazione ed è acquistabile in loco.
+		</h4>
+		<h2 style="padding-top:10px; padding-bottom:20px;">
+			Utilizza il modulo sottostante per <strong>prenotare i tuoi posti a tavola</strong>:
+		</h2>
 
 		<!-- Schermata 1 -->
  		<div class="form_prenotaz">
-			<h1><span style="color:#d39c04 !important;">Passo 1 di 5</span><br>Seleziona una data</h1>
+			<h1><span style="color:#d39c04 !important;">Passo 1 di 5</span><br>Seleziona una data<br><span style="color:#d39c04 !important; font-size:0.8em;">(dal ' . $startdate . ' al ' .$stopdate . ').</span></h1>
 			<form id="dataora">
 				<input id="index" type="hidden" value="0"/>
 				<input id="startdate" type="hidden" value="'.$startdate.'"/>
