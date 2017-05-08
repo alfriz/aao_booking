@@ -236,7 +236,7 @@ function checkSession()
 	
 	deleteOldSessions();	
 
-	if ( $session < time() - (15 * 60))
+	if ( $session < time() - (30 * 60))
 	{
 		$_SESSION['sessionId'] = time();
 		$result = true;
@@ -980,8 +980,15 @@ function deleteSession($session)
 
 function deleteOldSessions()
 {
-	$session = time() - (15 * 60);
+	$session = time() - (30 * 60);
 	global $wpdb;
+	
+	$wpdb->query( 
+			"INSERT INTO `wp_aao_bkg_log_bookings`
+			SELECT *
+			FROM `wp_aao_bkg_temp_bookings`
+			WHERE session<" . $session );
+	
 	$temp = $wpdb->query( 
 		"DELETE FROM `wp_aao_bkg_temp_bookings`
 			WHERE	session<" . $session  ); 
