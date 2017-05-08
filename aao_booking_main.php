@@ -137,7 +137,7 @@ function paypal_completed($posted)
 	if ($res == '0')
 		return null;
 		
-	$sessionInfo = getSessionData($res);
+	$sessionInfo = getSessionReportData($res);
 
 	if ($sessionInfo!=null)
 	{
@@ -259,6 +259,7 @@ function saveData($index, $inputdata)
 		updateService($inputdata);
 	}elseif($index == 3){
 		updateUserData($inputdata);
+		saveSessionReport();
 	}
 
 }
@@ -904,6 +905,29 @@ function updateUserData($userdata)
 	}
 }
 
+function saveSessionReport()
+{
+	global $wpdb;
+	$session = $_SESSION['sessionId'];
+	
+	$row = getDataFromSession();
+			
+	if ($row!= null){
+		$query = 'INSERT INTO wp_aao_bkg_session_bookings (session, day, areaId, persons, userdata) 
+			VALUES('.$session.', "'.$row->day.'", '.$row->areaId.', "'.$row->persons.'", "' .$row->userdata. '") ON DUPLICATE KEY UPDATE    
+				day="'. $row->day .'",
+				areaId='.$row->areaId.', 
+				persons="'.$row->persons.'", 
+				userdata="'.$row->userdata.'"
+		';		 
+		
+		//echo $query;
+		
+		$wpdb->query( $query );
+
+	}
+}
+
 function saveBooking($sessionInfo)
 {
 	global $wpdb;
@@ -983,12 +1007,6 @@ function deleteOldSessions()
 	$session = time() - (30 * 60);
 	global $wpdb;
 	
-	$wpdb->query( 
-			"INSERT INTO `wp_aao_bkg_log_bookings`
-			SELECT *
-			FROM `wp_aao_bkg_temp_bookings`
-			WHERE session<" . $session );
-	
 	$temp = $wpdb->query( 
 		"DELETE FROM `wp_aao_bkg_temp_bookings`
 			WHERE	session<" . $session  ); 
@@ -1047,6 +1065,20 @@ function getSessionData($session)
 			"
 			SELECT      *
 			FROM        wp_aao_bkg_temp_bookings
+			WHERE		session=%d", $session )  
+		); 
+	
+	return $temp;
+}
+
+function getSessionReportData($session)
+{
+	global $wpdb;
+	$temp = $wpdb->get_row(
+		$wpdb->prepare( 
+			"
+			SELECT      *
+			FROM        wp_aao_bkg_session_bookings
 			WHERE		session=%d", $session )  
 		); 
 	
