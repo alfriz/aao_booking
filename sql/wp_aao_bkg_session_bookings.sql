@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Creato il: Mag 08, 2017 alle 21:50
+-- Creato il: Mag 12, 2017 alle 14:45
 -- Versione del server: 10.1.18-MariaDB-cll-lve
 -- Versione PHP: 5.6.14
 
@@ -26,7 +26,8 @@ CREATE TABLE `wp_aao_bkg_session_bookings` (
   `areaId` mediumint(9) DEFAULT NULL,
   `persons` text NOT NULL,
   `session` bigint(20) NOT NULL,
-  `userdata` text NOT NULL
+  `userdata` text NOT NULL,
+  `InsertDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
