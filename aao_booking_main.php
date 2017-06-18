@@ -13,12 +13,10 @@
  *
 **/
 
-
 if(!session_id()) 
 	{ 
 		session_start();
 	}
-	
 ?>
 
 
@@ -347,7 +345,7 @@ function get_areas ($date) {
 			as t
 			ON a.id = t.areaid
 
-		WHERE b.areaid IS NULL AND t.areaid is NULL 
+		WHERE b.areaid IS NULL AND t.areaid is NULL AND a.hidden = 0
 		ORDER BY disporder ASC 
 	";
 
@@ -974,18 +972,25 @@ function sendMails($session)
 	parse_str($sessionrow->userdata, $userdata);
 	
 	$to = $userdata['email'];
-	$subject = $value['emailnotifysubject'];
-	$message = $value['emailnotifybody']. summarystring($sessionrow);
+	if (!IsNullOrEmptyString($to))
+	{
+		$subject = $value['emailnotifysubject'];
+		$message = $value['emailnotifybody']. summarystring($sessionrow);
 
-	wp_mail( $to, $subject, $message );
+		wp_mail( $to, $subject, $message );
 	
 	
-	$to = $value['emailnotify'];
-	$subject = $value['gemailnotifysubject'];
-	$message = $value['gemailnotifybody']. summarystring($sessionrow, $paymentmode);
+		$to = $value['emailnotify'];
+		$subject = $value['gemailnotifysubject'];
+		$message = $value['gemailnotifybody']. summarystring($sessionrow, $paymentmode);
 
-	wp_mail( $to, $subject, $message );
+		wp_mail( $to, $subject, $message );
+	}
 	
+}
+
+function IsNullOrEmptyString($question){
+    return (!isset($question) || trim($question)==='');
 }
 
 //----------------- db functions
