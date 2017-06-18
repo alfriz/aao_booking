@@ -17,10 +17,8 @@ if(!session_id())
 	{ 
 		session_start();
 	}
-?>
+	
 
-
-<?php
 
 if ( ! defined( 'WPINC' ) ) { die; }
 
@@ -207,7 +205,7 @@ function my_wp_ajax_noob_aao_booking_ajax_callback(){
 			$results = get_bookingsaved();
 		}
 		else
-			$results = get_summary();
+			$results = get_summary($inputdata);
 	} 
 	
 		//$results = "<h2> Sono data: ".$greeting."</h2>"; // Return String 
@@ -500,7 +498,7 @@ function get_user_data () {
 	return $result;
 }
 
-function get_summary () {
+function get_summary ($inputdata) {
 
 	$session = $_SESSION['sessionId'];
 	
@@ -514,17 +512,22 @@ function get_summary () {
 					<br/>';
 	
 	$totale = 0;
-	$result = $result .summarystring($sessionrow, null, $totale);
+
+	$result = $result .summarystring($sessionrow, null, $totale, $inputdata);
     
 	$result = $result 
 			 .paypalbtn($totale);    
 
-    $result = $result .'<label style="margin-top:70px;">Hai un codice promozionale?</label><br/>';
-    
-    $result = $result .'<input type="text" id="promocode" name="promocode" value="" style="width:50%; margin-bottom:15px !important;"></input>';
 		
-    $result = $result .'<p><button onclick="avanticlick()">Applica</button></p></br>';	
-        
+	if ($inputdata=='' || substr( $inputdata, 0, 4 ) === "name")	
+	{
+	    $result = $result .'<label style="margin-top:70px;">Hai un codice promozionale?</label><br/>';    
+    	$result = $result .'<input type="text" id="promocode" name="promocode" value="" style="width:50%; margin-bottom:15px !important;"></input>';
+    	$result = $result .'<p><button onclick="avanticlick()">Applica</button></p></br>';	
+    }
+    else
+    	updateCoupon($inputdata);
+
 
     $result = $result .'<div class="form_prenotaz" style="background:rgba(255, 255, 255, 0);">
 							<input style="background:rgba(255, 204, 51, 0.6); margin-top:10px; margin-bottom:25px;" type="submit" value="Indietro" onclick="indietroclick()">
@@ -533,7 +536,7 @@ function get_summary () {
 	return $result;
 }
 
-function summarystring($sessionrow, $paymentmode, &$totale)
+function summarystring($sessionrow, $paymentmode, &$totale, &$inputdata)
 {
 
 	$result ='';
@@ -566,13 +569,28 @@ function summarystring($sessionrow, $paymentmode, &$totale)
 						';  
 		
 	$totale = 0;
+	$couponapplied = false;
+
 	foreach ($persons as $key => $value) {
+		$discperc = 0;
+		$discval = 0;
 		
 		if ( startsWith($key, 'qty') && $value > 0)
 		{
 			$serviceid = substr($key, -2);
 			$serviceinfo = getServiceInfo($serviceid);
+			$coupon = getCoupon($inputdata, $sessionrow->aid, $serviceid);
+			if (count($coupon)> 0 && ($coupon->maxcount==-1 || $coupon->usedcount<$coupon->maxcount))
+			{
+				echo $coupon->usedcount . ' t ' ;
+				echo $coupon->maxcount. ' t ';
+				$couponapplied = true;
+				$discperc = $coupon->discountperc;
+				$discval = $coupon->discountval;
+			}
+
 			$prezzo = ($serviceinfo->prezzo * $value);
+			$prezzo = $prezzo - ($prezzo*$discperc/100) -$discval;
 			$result = $result . '<li><span style="font-weight:300 !important; margin-bottom:30px;">' . $serviceinfo->description .' - </span> <strong>'.  $value .' persone</strong> - Subtotale '. $prezzo .'€ </li>';
 			$totale = $totale + $prezzo;
 			
@@ -580,6 +598,15 @@ function summarystring($sessionrow, $paymentmode, &$totale)
 	}
 	
 	$result = $result .'</ul>';
+	
+	if (!$couponapplied )
+	{
+		$inputdata = '';
+	}
+	else
+	{
+		$result = $result .'Applicato codice sconto: <strong>' . $inputdata . '</strong>';
+	}
 
 	$result = $result .'<h3 style="margin-top:20px; margin-bottom:10px; font-weight:700; font-size:2em;">Totale '. $totale .'€ </h3>';
 	
@@ -590,6 +617,26 @@ function summarystring($sessionrow, $paymentmode, &$totale)
 	
 	return $result;
 }
+
+function getCoupon($inputdata, $areaid, $serviceid)
+{
+	global $wpdb;
+	$currentdate = date('Y-m-d');
+	
+	$sql = "SELECT *
+			FROM  `wp_aao_bkg_coupons` 
+			WHERE	areaid=" . $areaid 
+					. " AND serviceid=" .$serviceid
+					. " AND code='" .$inputdata. "'" 
+					. " AND fromdate<='" .$currentdate. "'" 
+					. " AND todate>='" .$currentdate. "'";
+	$temp = $wpdb->get_row($sql ); 
+					
+//	echo $sql;
+	
+	return $temp;
+}
+
 
 function paypalbtn($totale)
 {
@@ -905,6 +952,53 @@ function updateUserData($userdata)
 	}
 }
 
+function updateCoupon($param)
+{
+	global $wpdb;
+	$session = $_SESSION['sessionId'];
+
+	$wpdb->query(  'UPDATE wp_aao_bkg_temp_bookings SET coupon="'. $param .'" WHERE session='. $session );
+}
+
+function updateUsedCoupon($sessionrow)
+{
+
+
+	global $wpdb;
+	$currentdate = date('Y-m-d');
+	parse_str($sessionrow->persons, $persons);
+	
+	//echo "update coupon";
+	
+	foreach ($persons as $key => $value) {
+	
+		if ( startsWith($key, 'qty') && $value > 0)
+		{
+			$serviceid = substr($key, -2);
+			$serviceinfo = getServiceInfo($serviceid);
+		//	echo "check coupon";
+			$coupon = getCoupon($sessionrow->coupon, $sessionrow->areaId, $serviceid);
+			if (count($coupon)>0)
+			{
+			
+		//		echo "set coupon";
+				
+				$sql = "UPDATE wp_aao_bkg_coupons SET usedcount=". ($coupon->usedcount+1) ." WHERE	areaid=" . $sessionrow->areaId 
+					. " AND serviceid=" .$serviceid
+					. " AND code='" .$sessionrow->coupon. "'" 
+					. " AND fromdate<='" .$currentdate. "'" 
+					. " AND todate>='" .$currentdate. "'";
+				$wpdb->query( $sql );
+			
+			//	echo $sql;
+			}
+
+			
+		}
+	}
+}
+
+
 function saveSessionReport()
 {
 	global $wpdb;
@@ -919,9 +1013,7 @@ function saveSessionReport()
 				areaId='.$row->areaId.', 
 				persons="'.$row->persons.'", 
 				userdata="'.$row->userdata.'"
-		';		 
-		
-		//echo $query;
+		';		
 		
 		$wpdb->query( $query );
 
@@ -937,10 +1029,13 @@ function saveBooking($sessionInfo)
 	}
 	else
 		$row = $sessionInfo;
+		
+	updateUsedCoupon($row);	
+		
 		 
 	$wpdb->query( 'INSERT INTO wp_aao_bkg_bookings
-					(dayOfRegistration, day, areaId, persons, userdata, paymentmode) 
-					VALUES ("'. date('Y-m-d') .'","'.$row->day.'",'.$row->areaId .',"'.$row->persons.'","'.$row->userdata.'","'.getPaymentMode($sessionInfo).'")' );
+					(dayOfRegistration, day, areaId, persons, userdata, paymentmode, coupon) 
+					VALUES ("'. date('Y-m-d') .'","'.$row->day.'",'.$row->areaId .',"'.$row->persons.'","'.$row->userdata.'","'.getPaymentMode($sessionInfo).'","'.$row->coupon.'")' );
 
 	deleteSession($row->session);
 }
@@ -986,11 +1081,6 @@ function sendMails($session)
 
 		wp_mail( $to, $subject, $message );
 	}
-	
-}
-
-function IsNullOrEmptyString($question){
-    return (!isset($question) || trim($question)==='');
 }
 
 //----------------- db functions
@@ -1027,7 +1117,7 @@ function getExtededDataFromSession($session)
 	
 	global $wpdb;
 	$temp = $wpdb->get_row(
-		"SELECT * , a.description AS adesc
+		"SELECT * , a.description AS adesc, a.id AS aid
 			FROM  `wp_aao_bkg_temp_bookings` AS t
 			LEFT JOIN wp_aao_bkg_areas AS a ON t.areaid = a.id
 			WHERE	session=" . $session  ); 
