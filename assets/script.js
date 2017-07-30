@@ -37,6 +37,22 @@ function indietroclick()
 		}); 
 }
 
+function prenotaclick()
+{
+	errorCode = 0;
+	jQuery.ajax({ 
+			type: 'POST', 
+			url: aao_booking_ajax_url, 
+			data: { action: 'aao_booking_avanti', index: jQuery("#index").val(), isavanti: 1, inputdata:prenota(), errorcode:errorCode}, 
+			success: function(data, textStatus, XMLHttpRequest){
+				jQuery("#containerpage").html(''); 
+				jQuery("#containerpage").append(data); 
+				resetdatalayout();
+			}, 
+			error: function(MLHttpRequest, textStatus, errorThrown){ alert(errorThrown); } 
+		}); 
+}
+
 function searchclick()
 {
 	errorCode = 0;
@@ -188,6 +204,22 @@ function sdata()
 	}
 	
 	return  "area=" + jQuery("#area").val()+ "&" + data;
+}
+
+function prenota()
+{
+	var index = jQuery("#index").val();
+	
+	var data = '';
+	
+	errorCode = 0;
+	if (index == 4)
+	{
+		data = "prenota";
+		
+	}
+	
+	return data;
 }
 
 function fdata(isavanti)
