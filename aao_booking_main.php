@@ -352,11 +352,12 @@ function get_areas ($date) {
 	
 	$areas = $wpdb->get_results( $wpdb->prepare( $sql ) ); 
 	
+	$dates = date_create_from_format('Y-m-d', $date);
+	$formatdate = date_format($dates, 'd/m/Y');
+		
 	if ($wpdb->num_rows > 0 && test_blackdate($date))
 	{
-		$dates = date_create_from_format('Y-m-d', $date);
-		$formatdate = date_format($dates, 'd/m/Y');
-
+		
 		$result = '
 			<!-- Schermata 2 -->
 			<div class="form_prenotaz" style="padding-bottom:0px;">
