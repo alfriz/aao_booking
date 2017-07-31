@@ -141,7 +141,7 @@ function paypal_completed($posted)
 
 	if ($sessionInfo!=null)
 	{
-		sendmails($res);
+		sendMails($res, 0);
 		saveBooking(0, $sessionInfo);
 	}
 }
@@ -203,8 +203,9 @@ function my_wp_ajax_noob_aao_booking_ajax_callback(){
 		
 		if ($inputdata == getBackDoorPromoCode() || $inputdata == 'prenota')
 		{
-			sendMails();
-			saveBooking($inputdata == 'prenota'?2:1);
+			$isPrenota = $inputdata == 'prenota'?2:1;
+			sendMails(null, $isPrenota );
+			saveBooking($isPrenota);
 			$results = get_bookingsaved();
 		}
 		else
@@ -294,7 +295,7 @@ function get_bookingdata()
 
 		<!-- Schermata 1 -->
  		<div class="form_prenotaz">
-			<h1><span style="color:#d39c04 !important;">Passo 1 di 5</span><br>Seleziona una data<br><span style="color:#d39c04 !important; font-size:0.8em;">(dal ' . $startdate . ' al ' .$stopdate . ').</span></h1>
+			<h1><span style="color:#d39c04 !important;">Passo 1 di 6</span><br>Seleziona una data<br><span style="color:#d39c04 !important; font-size:0.8em;">(dal ' . $startdate . ' al ' .$stopdate . ').</span></h1>
 			<form id="dataora">
 				<input id="index" type="hidden" value="0"/>
 				<input id="startdate" type="hidden" value="'.$startdate.'"/>
@@ -361,7 +362,7 @@ function get_areas ($date) {
 		$result = '
 			<!-- Schermata 2 -->
 			<div class="form_prenotaz" style="padding-bottom:0px;">
-				<h1 style="background:green; color:#ffffff !important;"><span style="color:#035903 !important;">Passo 2 di 5</span><br>Ecco le aree disponibili per il '. $formatdate .'.<br> Effettua una selezione e clicca AVANTI per proseguire.</h1>
+				<h1 style="background:green; color:#ffffff !important;"><span style="color:#035903 !important;">Passo 2 di 6</span><br>Ecco le aree disponibili per il '. $formatdate .'.<br> Effettua una selezione e clicca AVANTI per proseguire.</h1>
 
 				<form id="aree">
 
@@ -434,10 +435,10 @@ function get_services ($area) {
 		$result ='
 				<!-- Schermata 3 -->
 				<div class="form_prenotaz" style="padding-bottom:0px;">
-					<h1><span style="color:#d39c04 !important;">Passo 3 di 5</span><br>Seleziona il numero di partecipanti per tipologia di cena</h1>
+					<h1><span style="color:#d39c04 !important;">Passo 3 di 6</span><br>Seleziona il numero di partecipanti per tipologia di cena</h1>
 				';
 	else
-		$result ='<h1><span style="color:#d39c04 !important;">Passo 3 di 5</span><br>Seleziona il numero di partecipanti</h1>';
+		$result ='<h1><span style="color:#d39c04 !important;">Passo 3 di 6</span><br>Seleziona il numero di partecipanti</h1>';
 	
 	$result = $result .' <form id="servizi">
 							<input id="index" type="hidden" value="2"/>';
@@ -485,7 +486,7 @@ function get_user_data () {
 	$result = '
 				<!-- Schermata 4 -->
  				<div class="form_prenotaz">
-					<h1><span style="color:#d39c04 !important;">Passo 4 di 5</span><br>Inserisci i dati del referente</h1>
+					<h1><span style="color:#d39c04 !important;">Passo 4 di 6</span><br>Inserisci i dati del referente</h1>
 					<form id="datiutente">
 						<input id="index" type="hidden" value="3"/>
 						<label for"name">Nome</label>
@@ -511,24 +512,36 @@ function get_summary () {
 	$result =' 	
 	<!-- Schermata 5 -->
  				<div class="form_prenotaz">
-					<h1><span style="color:#d39c04 !important;">Passo 5 di 5</span><br>Controlla i dettagli della prenotazione:</h1>
+					<h1><span style="color:#d39c04 !important;">Passo 5 di 6</span><br>Controlla i dettagli della prenotazione:</h1>
 					<input id="index" type="hidden" value="4"/>
 					<br/>';
 	
 	$totale = 0;
 	$result = $result .summarystring($sessionrow, null, $totale);
     
-	$result = $result .'<p><button onclick="prenotaclick()">Prenota</button></p></br>';
+	$result = $result .'<div class="form_prenotaz_opzioni_pagam">
+							<h1><span style="color:#d39c04 !important;">Passo 6 di 6</span><br>Seleziona il metodo di pagamento:</h1>
+							<h4><span style="font-weight:300;">Opzione 1:</span><br>Conferma gratuita</h4>
+							<h6>Clicca su "Prenotazione gratuita" per confermare la tua prenotazione e pagare in loco<br>(pagherai direttamente presso la ns. sede nel giorno della tua visita). </h6>
+							<p><button onclick="prenotaclick()">Prenota</button></p>
+							<h4><span style="font-weight:300;">Opzione 2:<br></span>PayPal</h4>
+							<h6>Paga ora tramite il sistema sicuro PayPal.</h6>
+						';
 
 	$result = $result 
 			 .paypalbtn($totale);    
 			 
 
-    $result = $result .'<label style="margin-top:70px;">Hai un codice promozionale?</label><br/>';
+    $result = $result .'<h4><span style="font-weight:300;">Opzione 3:<br></span>Codice promozionale</h4>
+						<h6>Se sei in possesso di un promo code inseriscilo nel campo sottostante e clicca su "Applica".</h6>
+						';
     
     $result = $result .'<input type="text" id="promocode" name="promocode" value="" style="width:50%; margin-bottom:15px !important;"></input>';
 		
-    $result = $result .'<p><button onclick="avanticlick()">Applica</button></p></br>';	
+    $result = $result .'<p>
+    						<button onclick="avanticlick()">Applica</button>
+						</p>
+    				</div>';	
         
 
     $result = $result .'<div class="form_prenotaz" style="background:rgba(255, 255, 255, 0);">
@@ -586,7 +599,7 @@ function summarystring($sessionrow, $paymentmode, &$totale)
 	
 	$result = $result .'</ul>';
 
-	$result = $result .'<h3 style="margin-top:20px; margin-bottom:10px; font-weight:700; font-size:2em;">Totale '. $totale .'€ </h3>';
+	$result = $result .'<h3 style="border-top: thick double #393830; width:30%; margin-left:auto; margin-right:auto; margin-top:20px; padding-top:20px; margin-bottom:10px; font-weight:700; font-size:2em;">Totale: '. $totale .'€ </h3>';
 	
 	if ($paymentmode!=null)
 	{
@@ -965,10 +978,10 @@ function getPaymentMode($payment)
 	return $paymentmode;
 }
 
-function sendMails($session)
+function sendMails($session, $paymode)
 {
 
-	$paymentmode = getPaymentMode($session);
+	$paymentmode = getPaymentMode($paymode);
 	
 	if ($session==null)
 		$session = $_SESSION['sessionId'];
