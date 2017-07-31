@@ -17,6 +17,9 @@ if(!session_id())
 	{ 
 		session_start();
 	}
+	
+?>
+<?php
 
 
 if ( ! defined( 'WPINC' ) ) { die; }
@@ -516,8 +519,8 @@ function get_summary () {
     
 	$result = $result .'<p><button onclick="prenotaclick()">Prenota</button></p></br>';
 
-//	$result = $result 
-//			 .paypalbtn($totale);    
+	$result = $result 
+			 .paypalbtn($totale);    
 			 
 
     $result = $result .'<label style="margin-top:70px;">Hai un codice promozionale?</label><br/>';
