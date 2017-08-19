@@ -353,10 +353,12 @@ function get_areas ($date) {
 	
 	$areas = $wpdb->get_results( $wpdb->prepare( $sql ) ); 
 	
+	$today = date_create_from_format('Y-m-d', date('Y-m-d'));
+	
 	$dates = date_create_from_format('Y-m-d', $date);
 	$formatdate = date_format($dates, 'd/m/Y');
 		
-	if ($wpdb->num_rows > 0 && test_blackdate($date))
+	if ($wpdb->num_rows > 0 && test_blackdate($date) && $dates>$today)
 	{
 		
 		$result = '
@@ -833,7 +835,7 @@ function aao_booking_plugin_options() {
 	echo "<br /><b>Backdoor promotion code: </b><input type='text' name='backdoorpc' value='".$value['backdoorpc']."'> Required";
 	echo "<br /><br/><b>Booking Start date: </b><input type='date' name='startdate' value='".$value['startdate']."'>";
 	echo "<br /><b>Booking Stop date: </b><input type='date' name='stopdate' value='".$value['stopdate']."'> ";
-	echo "<br /><b>Booking Blacklist date: </b><input type='date' name='blackdate' value='".$value['blackdate']."'> ";
+	echo "<br /><b>Booking Blacklist date: </b><input type='text' name='blackdate' value='".$value['blackdate']."'> ";
 
 	echo "<br /><br /></div>";
 
