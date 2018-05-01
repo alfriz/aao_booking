@@ -351,7 +351,7 @@ function get_areas ($date) {
 		ORDER BY disporder ASC 
 	";
 	
-	$areas = $wpdb->get_results( $wpdb->prepare( $sql ) ); 
+	$areas = $wpdb->get_results( $sql ); 
 	
 	$today = date_create_from_format('Y-m-d', date('Y-m-d'));
 	
@@ -890,8 +890,8 @@ function updateDateTime($date)
 				 ';
 				 
 		
-		$wpdb->query( $wpdb->prepare(  
-				$sql));
+		$wpdb->query(  
+				$sql);
 //		if ($row!= null && $row->day != date_format($dates, 'Y-m-d'))		 
 //			$wpdb->query(  'UPDATE wp_aao_bkg_temp_bookings SET areaId=null, persons=null, userdata=null WHERE session='. $session );
 
