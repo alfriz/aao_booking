@@ -329,6 +329,13 @@ function fdata(isavanti)
 			alert ("Formato telefono errato");
 		}
 		
+		var confirmation = jQuery("#confirmation").prop('checked');
+		if (errorCode == 0 && !confirmation  && isavanti)
+		{
+			errorCode = 1;
+			alert ("E' necessario confermare la presa visione dei dati");
+		}
+		
 		data = jQuery('#datiutente').serialize();
 	}
 	if (index == 4)

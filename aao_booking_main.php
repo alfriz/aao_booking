@@ -498,8 +498,10 @@ function get_user_data () {
 						<label for"email">Email</label>
 						<input id="email" name="email" type="email" value="'. ($params!=null?$params['email']:'') .'"></input></br>
 						<label for"tel">Telefono</label>
-						<input id="tel" name="tel" type="tel" value="'. ($params!=null?$params['tel']:'') .'"></input>
-					</form>'
+						<input id="tel" name="tel" type="tel" value="'. ($params!=null?$params['tel']:'') .'"></input></br>
+						<label for"confirmation">Conferma</label>
+						<input id="confirmation" name="confirmation" type="checkbox" value="'. ($params!=null?$params['confirmmation']:'') .'"></input></br>
+				</form>'
 		 . getNavButtons(true, true);
 		
 	return $result;
@@ -799,11 +801,11 @@ function aao_booking_plugin_options() {
 
 	<?php
 
-	echo "<b>Live Account: </b><input type='text' name='liveaccount' value='".$value['liveaccount']."'> Required";
+	echo "<b>Live Account: </b><input type='text' name='liveaccount' size='90' value='".$value['liveaccount']."'> Required";
 	echo "<br />Enter a valid Merchant account ID (strongly recommend) or PayPal account email address. All payments will go to this account.";
 	echo "<br /><br />You can find your Merchant account ID in your PayPal account under Profile -> My business info -> Merchant account ID";
 
-	echo "<br /><b>Sandbox Account: </b><input type='text' name='sandboxaccount' value='".$value['sandboxaccount']."'> Optional";
+	echo "<br /><b>Sandbox Account: </b><input type='text' name='sandboxaccount' size='90'  value='".$value['sandboxaccount']."'> Optional";
 	echo "<br />Enter a valid sandbox PayPal account email address. A Sandbox account is a PayPal accont with fake money used for testing. This is useful to make sure your PayPal account and settings are working properly being going live.";
 	echo "<br /><br />To create a Sandbox account, you first need a Developer Account. You can sign up for free at the <a target='_blank' href='https://www.paypal.com/webapps/merchantboarding/webflow/unifiedflow?execution=e1s2'>PayPal Developer</a> site. <br /><br />";
 
@@ -815,7 +817,7 @@ function aao_booking_plugin_options() {
 	echo "<br /><br /><b>Payment Action:</b>";
 	echo "&nbsp; &nbsp; <input "; if ($value['paymentaction'] == "1") { echo "checked='checked'"; } echo " type='radio' name='paymentaction' value='1'>Sale (Default)";
 	echo "&nbsp; &nbsp; <input "; if ($value['paymentaction'] == "2") { echo "checked='checked'"; } echo " type='radio' name='paymentaction' value='2'>Authorize (Learn more <a target='_blank' href='https://developer.paypal.com/docs/classic/paypal-payments-standard/integration-guide/authcapture/'>here</a>)";
-	echo "<br /><br /><b>Notify Url:</b><input type='text' name='notifyurl' value='".$value['notifyurl']."'> Required";
+	echo "<br /><br /><b>Notify Url:</b><input type='text' name='notifyurl'  size='90'  value='".$value['notifyurl']."'> Required";
 
 	echo "<br /><br /></div>";
 
@@ -826,16 +828,16 @@ function aao_booking_plugin_options() {
 
 	<?php
 
-	echo "<b>Notify Email address: </b><input type='text' name='emailnotify' value='".$value['emailnotify']."'> Required";
-	echo "<br /><b>Customer Notify Email subject: </b><input type='text' name='emailnotifysubject' value='".$value['emailnotifysubject']."'> Required";
-	echo "<br /><b>Customer Notify Email body: </b><input type='text' name='emailnotifybody' value='".$value['emailnotifybody']."'> Required";
-	echo "<br /><b>Galassi Notify Email subject: </b><input type='text' name='gemailnotifysubject' value='".$value['gemailnotifysubject']."'> Required";
-	echo "<br /><b>Galassi Notify Email body: </b><input type='text' name='gemailnotifybody' value='".$value['gemailnotifybody']."'> Required";
+	echo "<div style=\"margin-bottom:20px;\"><b>Notify Email address: </b><input type='text' name='emailnotify' size='90' value='".$value['emailnotify']."'> Required</div>";
+	echo "<div style=\"margin-bottom:20px;\"><b>Customer Notify Email subject: </b><input type='text' size='90' name='emailnotifysubject' value='".$value['emailnotifysubject']."'> Required</div>";
+	echo "<div style=\"margin-bottom:20px;\"><b>Customer Notify Email body: </b><input type='text' size='90' name='emailnotifybody' value='".$value['emailnotifybody']."'> Required</div>";
+	echo "<div style=\"margin-bottom:20px;\"><b>Galassi Notify Email subject: </b><input type='text' size='90' name='gemailnotifysubject' value='".$value['gemailnotifysubject']."'> Required</div>";
+	echo "<div style=\"margin-bottom:20px;\"><b>Galassi Notify Email body: </b><input type='text' size='90' name='gemailnotifybody' value='".$value['gemailnotifybody']."'> Required</div>";
 	
-	echo "<br /><b>Backdoor promotion code: </b><input type='text' name='backdoorpc' value='".$value['backdoorpc']."'> Required";
-	echo "<br /><br/><b>Booking Start date: </b><input type='date' name='startdate' value='".$value['startdate']."'>";
-	echo "<br /><b>Booking Stop date: </b><input type='date' name='stopdate' value='".$value['stopdate']."'> ";
-	echo "<br /><b>Booking Blacklist date: </b><input type='text' name='blackdate' value='".$value['blackdate']."'> ";
+	echo "<div style=\"margin-bottom:20px;\"><b>Backdoor promotion code: </b><input type='text' name='backdoorpc' value='".$value['backdoorpc']."'> Required</div>";
+	echo "<div style=\"margin-bottom:20px;\"><b>Booking Start date: </b><input type='date' name='startdate' value='".$value['startdate']."'></div>";
+	echo "<div style=\"margin-bottom:20px;\"><b>Booking Stop date: </b><input type='date' name='stopdate' value='".$value['stopdate']."'> </div>";
+	echo "<div style=\"margin-bottom:20px;\"><b>Booking Blacklist date (f.to GG/MM/AAAA, separati da virgola): </b><input type='text' name='blackdate' value='".$value['blackdate']."'> </div>";
 
 	echo "<br /><br /></div>";
 

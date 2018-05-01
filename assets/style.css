@@ -97,4 +97,19 @@
 /* CSS riepilogo dettagli prenotazione */
 .lista_riep_dett_prenot {line-height: 2em; margin-bottom:50px; list-style-type: none;} 
 .lista_riep_dett_prenot h3 {margin-bottom:10px; font-weight: 700;}
+.form_prenotaz_opzioni_pagam {background: #ffffff; padding-bottom:60px; margin-top: 80px; margin-bottom: 50px; border: 1px solid #4C3D2D;}
+.form_prenotaz_opzioni_pagam h3 {margin-bottom: 10px; font-weight: 700;}
+.form_prenotaz_opzioni_pagam h4 {margin-bottom: 10px; margin-top: 40px; font-weight: 700;}
+.form_prenotaz_opzioni_pagam h5 {margin-bottom: 10px;}
+.form_prenotaz_opzioni_pagam h6 {margin-bottom: 10px;}
+
+
+
+/* Aspetto plugin nel backend */
+.riga_input{margin-bottom: 50px; background-color: red;} 
+
+
+
+
+
 

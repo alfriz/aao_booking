@@ -1,0 +1,17 @@
+Dati connessione
+
+** PANNELLO PLESK
+Link: https://linp031.arubabusiness.it:8443/
+Nome utente: h473859
+Password: eH3:9=g%jW
+
+** FTP
+Dominio: galassicarlo.com
+Utente: ftp033359
+Password: eQ5%-,,Y3b
+
+** DATABASE
+nome database: h473859_g4l_db
+username del Database: h4738_u2rdb_g4l
+password del Database : feUdss/@adf2Mk14
+database host: localhost:3306
