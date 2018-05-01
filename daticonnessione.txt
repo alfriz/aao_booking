@@ -15,3 +15,44 @@ nome database: h473859_g4l_db
 username del Database: h4738_u2rdb_g4l
 password del Database : feUdss/@adf2Mk14
 database host: localhost:3306
+
+www.galassicarlo.com/admin
+utenti:
+user: alfredo
+email:alfredo.rizzi@psmobile.it
+pdwd : VKQFMB*JD(J%Gm%g(OQEEfT9
+
+
+
+----------------------------------
+
+Roba vecchia non più funzionante 
++-----------+
+| WORDPRESS |
++-----------+
+Url sito: www.marcotesselli.net
+Accesso amministrazione sito: www.marcotesselli.net/wp-admin
+
+Pagina prenotazioni: www.marcotesselli.net/prenotazioni
+Plugin: Bookly
+Percorso plugin Bookly: http://www.marcotesselli.net/wp-content/plugins/appointment-booking/
+Percorso add-on a plugin Bookly: http://www.marcotesselli.net/wp-content/plugins/bookly-addon-chain-appointments/
+
+utenti:
+user: alfredo
+email:alfredo.rizzi@psmobile.it
+pw prima attivazione: VKQFMB*JD(J%Gm%g(OQEEfT9
+
++-----+
+| FTP |
++-----+
+server: esm12.siteground.biz
+user: ftp_test@marcotesselli.com
+pw: om-nnyW4c}M}
+
++------------+
+| PHPMYADMIN |
++------------+
+Url accesso: https://ua.siteground.com/login.htm
+user: info@marcotesselli.com
+pw:AfA-3YH-PSa-5xs
