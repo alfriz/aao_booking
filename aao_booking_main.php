@@ -238,10 +238,12 @@ function checkSession()
 	
 	deleteOldSessions();	
 
+	$sessionres = isset($_SESSION['sessionId']);
+
 	if ( $session < time() - (30 * 60))
 	{
 		$_SESSION['sessionId'] = time();
-		$result = true;
+		$result = $sessionres;
 	}
 	
 	return $result;
@@ -498,9 +500,9 @@ function get_user_data () {
 						<label for"email">Email</label>
 						<input id="email" name="email" type="email" value="'. ($params!=null?$params['email']:'') .'"></input></br>
 						<label for"tel">Telefono</label>
-						<input id="tel" name="tel" type="tel" value="'. ($params!=null?$params['tel']:'') .'"></input></br>
-						<label for"confirmation">Conferma</label>
-						<input id="confirmation" name="confirmation" type="checkbox" value="'. ($params!=null?$params['confirmmation']:'') .'"></input></br>
+						<input id="tel" name="tel" type="tel" value="'. ($params!=null?$params['tel']:'') .'"></input><br><br>
+						<input id="confirmation" name="confirmation" type="checkbox" value="'. ($params!=null?$params['confirmation']:'') .'"></input><br>
+						<label for"confirmation"><h3>Ho preso visione del <a href="">regolamento</a> e acconsento al trattamento dei miei dati da parte di questo sito web secondo il GDPR (Regolamento Ue 2016/679)</h3></label><br>
 				</form>'
 		 . getNavButtons(true, true);
 		
