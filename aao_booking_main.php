@@ -527,10 +527,7 @@ function get_summary () {
     
 	$result = $result .'<div class="form_prenotaz_opzioni_pagam">
 							<h1><span style="color:#d39c04 !important;">Passo 6 di 6</span><br>Seleziona il metodo di pagamento:</h1>
-							<h4><span style="font-weight:300;">Opzione 1:</span><br>Conferma gratuita</h4>
-							<h6>Clicca su "Prenotazione gratuita" per confermare la tua prenotazione e pagare in loco<br>(pagherai direttamente presso la ns. sede nel giorno della tua visita). </h6>
-							<p><button onclick="prenotaclick()">Prenota</button></p>
-							<h4><span style="font-weight:300;">Opzione 2:<br></span>PayPal</h4>
+							<h4><span style="font-weight:300;">Opzione 1:<br></span>PayPal</h4>
 							<h6>Paga ora tramite il sistema sicuro PayPal.</h6>
 						';
 
@@ -538,7 +535,7 @@ function get_summary () {
 			 .paypalbtn($totale);    
 			 
 
-    $result = $result .'<h4><span style="font-weight:300;">Opzione 3:<br></span>Codice promozionale</h4>
+    $result = $result .'<h4><span style="font-weight:300;">Opzione 2:<br></span>Codice promozionale</h4>
 						<h6>Se sei in possesso di un promo code inseriscilo nel campo sottostante e clicca su "Applica".</h6>
 						';
     
@@ -563,6 +560,10 @@ function summarystring($sessionrow, $paymentmode, &$totale)
 	$result ='';
 	parse_str($sessionrow->userdata, $userdata);
 	parse_str($sessionrow->persons, $persons);
+	
+	$options = get_option('aao_booking_settingsoptions');
+	foreach ($options as $k => $v ) { $value[$k] = $v; }
+	$depositperc = $value['depositperc'];
 	
 	$dates = date_create_from_format('Y-m-d', $sessionrow->day);
 	$formatdate = date_format($dates, 'd/m/Y');
@@ -603,9 +604,22 @@ function summarystring($sessionrow, $paymentmode, &$totale)
 		}
 	}
 	
+	
 	$result = $result .'</ul>';
 
 	$result = $result .'<h3 style="border-top: thick double #393830; width:30%; margin-left:auto; margin-right:auto; margin-top:20px; padding-top:20px; margin-bottom:10px; font-weight:700; font-size:2em;">Totale: '. $totale .'€ </h3>';
+
+	$totale = $totale / 100 * $depositperc; 
+	$totaleformattato = $totale;
+	
+	if (is_decimal($totaleformattato))
+	{
+		$totaleformattato = number_format($totaleformattato, 2,",","");
+	}
+	
+	$result = $result .'<h3 style="border-top: thick double #393830; width:30%; margin-left:auto; margin-right:auto; margin-top:20px; padding-top:20px; margin-bottom:10px; font-weight:700; font-size:2em;">Anticipo prenotazione: '. $totaleformattato .'€ </h3>';
+
+	$totale = number_format($totale, 2,".","");
 	
 	if ($paymentmode!=null)
 	{
@@ -613,6 +627,11 @@ function summarystring($sessionrow, $paymentmode, &$totale)
 	}
 	
 	return $result;
+}
+
+function is_decimal( $val )
+{
+    return is_numeric( $val ) && floor( $val ) != $val;
 }
 
 function paypalbtn($totale)
@@ -769,6 +788,7 @@ function aao_booking_plugin_options() {
 		$options['startdate'] = 			$_POST['startdate'];
 		$options['stopdate'] = 				$_POST['stopdate'];
 		$options['blackdate'] = 			$_POST['blackdate'];
+		$options['depositperc'] = 			$_POST['depositperc'];
 
 		update_option("aao_booking_settingsoptions", $options);
 
@@ -840,6 +860,7 @@ function aao_booking_plugin_options() {
 	echo "<div style=\"margin-bottom:20px;\"><b>Booking Start date: </b><input type='date' name='startdate' value='".$value['startdate']."'></div>";
 	echo "<div style=\"margin-bottom:20px;\"><b>Booking Stop date: </b><input type='date' name='stopdate' value='".$value['stopdate']."'> </div>";
 	echo "<div style=\"margin-bottom:20px;\"><b>Booking Blacklist date (f.to GG/MM/AAAA, separati da virgola): </b><input type='text' name='blackdate' value='".$value['blackdate']."'> </div>";
+	echo "<div style=\"margin-bottom:20px;\"><b>Deposit percentage: </b><input type='text' name='depositperc' value='".$value['depositperc']."'> %</div>";
 
 	echo "<br /><br /></div>";
 
@@ -909,7 +930,7 @@ function updateArea($area)
 
 		$row = getDataFromSession();
 		if ($row!= null && $row->areaId != $area)
-			$wpdb->query(  'UPDATE wp_aao_bkg_temp_bookings SET areaId='. $area .', persons=null, userdata=null WHERE session='. $session );
+			$wpdb->query(  'UPDATE wp_aao_bkg_temp_bookings SET areaId='. $area .', persons=null WHERE session='. $session );
 	}
 }
 
