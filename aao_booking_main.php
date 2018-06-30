@@ -205,7 +205,7 @@ function my_wp_ajax_noob_aao_booking_ajax_callback(){
 		{
 			$isPrenota = $inputdata == 'prenota'?2:1;
 			sendMails(null, $isPrenota );
-			saveBooking($isPrenota);
+			saveBooking($isPrenota, null);
 			$results = get_bookingsaved();
 		}
 		else
@@ -985,10 +985,12 @@ function saveBooking($paymenttype, $sessionInfo)
 	}
 	else
 		$row = $sessionInfo;
-		 
-	$wpdb->query( 'INSERT INTO wp_aao_bkg_bookings
+	
+	$sql = 'INSERT INTO wp_aao_bkg_bookings
 					(dayOfRegistration, day, areaId, persons, userdata, paymentmode) 
-					VALUES ("'. date('Y-m-d') .'","'.$row->day.'",'.$row->areaId .',"'.$row->persons.'","'.$row->userdata.'","'.getPaymentMode($paymenttype).'")' );
+					VALUES ("'. date('Y-m-d') .'","'.$row->day.'",'.$row->areaId .',"'.$row->persons.'","'.$row->userdata.'","'.getPaymentMode($paymenttype).'")' ;
+		 
+	$wpdb->query( $sql );
 
 	deleteSession($row->session);
 }
@@ -1015,8 +1017,6 @@ function sendMails($session, $paymode)
 
 	$options = get_option('aao_booking_settingsoptions');
 	foreach ($options as $k => $v ) { $value[$k] = $v; }
-
-	
 	$sessionrow = getExtededDataFromSession($session);
 	
 	parse_str($sessionrow->userdata, $userdata);
@@ -1024,17 +1024,20 @@ function sendMails($session, $paymode)
 	$to = $userdata['email'];
 	if (!IsNullOrEmptyString($to))
 	{
+		$totale = 0;
 		$subject = $value['emailnotifysubject'];
-		$message = $value['emailnotifybody']. summarystring($sessionrow);
+		$message = $value['emailnotifybody'] .  summarystring($sessionrow, null, $totale);
 
 		wp_mail( $to, $subject, $message );
 	
 	
+		$totale = 0;
 		$to = $value['emailnotify'];
 		$subject = $value['gemailnotifysubject'];
-		$message = $value['gemailnotifybody']. summarystring($sessionrow, $paymentmode);
+		$message = $value['gemailnotifybody']. summarystring($sessionrow, $paymentmode, $totale);
 
 		wp_mail( $to, $subject, $message );
+	
 	}
 	
 }
