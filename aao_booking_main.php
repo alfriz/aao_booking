@@ -170,9 +170,8 @@ function my_wp_ajax_noob_aao_booking_ajax_callback(){
 	
 	if ($errorcode== 0)
 	{
-		saveData($index, $inputdata);
-
 		if($isavanti == 1) {
+			saveData($index, $inputdata);
 			$index = $index + 1;
 			if ( $index > 4)
 				$index = 4;
