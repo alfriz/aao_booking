@@ -502,7 +502,7 @@ function get_user_data () {
 						<label for"tel">Telefono</label>
 						<input id="tel" name="tel" type="tel" value="'. ($params!=null?$params['tel']:'') .'"></input><br><br>
 						<input id="confirmation" name="confirmation" type="checkbox" value="'. ($params!=null?$params['confirmation']:'') .'"></input><br>
-						<label for"confirmation"><h3>Ho preso visione del <a href="">regolamento</a> e acconsento al trattamento dei miei dati da parte di questo sito web secondo il GDPR (Regolamento Ue 2016/679)</h3></label><br>
+						<label for"confirmation"><h3>Ho preso visione del <a href="/regolamento/">regolamento</a> e acconsento al trattamento dei miei dati da parte di questo sito web secondo il GDPR (<a href="/privacy-e-cookies/">Regolamento Ue 2016/679</a>)</h3></label><br>
 				</form>'
 		 . getNavButtons(true, true);
 		
