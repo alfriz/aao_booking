@@ -236,7 +236,7 @@ function checkSession()
 
 	$session = $_SESSION['sessionId'];
 	
-	deleteOldSessions();	
+//	deleteOldSessions();	
 
 	$sessionres = isset($_SESSION['sessionId']);
 
@@ -902,10 +902,18 @@ function updateDateTime($date)
 	{
 		global $wpdb;
 		$session = $_SESSION['sessionId'];
+		
+
+		if (!isset($_SESSION['sessionId']) || $session == null || $session < time() - (30 * 60))
+		{
+			$session = time();
+			$_SESSION['sessionId'] = $session;
+		}
+		
 	
 		$dates = date_create_from_format('Y-m-d', $date);
 		
-		$row = getDataFromSession();
+//		$row = getDataFromSession();
 		
 		$sql = 'INSERT INTO wp_aao_bkg_temp_bookings (session, day) 
 				VALUES('.$session.', "'.date_format($dates, 'Y-m-d').'") ON DUPLICATE KEY UPDATE    
@@ -1064,12 +1072,12 @@ function deleteSession($session)
 
 function deleteOldSessions()
 {
-	$session = time() - (30 * 60);
+	$sessiontime = time() - (30 * 60);
 	global $wpdb;
 	
 	$temp = $wpdb->query( 
 		"DELETE FROM `wp_aao_bkg_temp_bookings`
-			WHERE	session<" . $session  ); 
+			WHERE	session<" . $sessiontime  ); 
 	
 	return $temp;
 
