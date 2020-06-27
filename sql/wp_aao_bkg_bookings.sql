@@ -107,6 +107,8 @@ AS
 --CONCAT(name,' ',surname) as "Nome e Cognome",
 --email as "Email",
 --tel as "Telefono",
+--min  as "Min persone",
+--max as "Max persone",
 --IF(qtyval1 IS NULL or LENGTH(qtyval1)=0 ,'-',CONCAT(service1, ' Qtà:', qtyval1)) as "Servizio 1",
 --IF(qtyval2 IS NULL or LENGTH(qtyval2)=0 ,'-',CONCAT(service2, ' Qtà:', qtyval2)) as "Servizio 2", 
 --IF(qtyval3 IS NULL or LENGTH(qtyval3)=0 ,'-',CONCAT(service3, ' Qtà:', qtyval3)) as "Servizio 3", 
